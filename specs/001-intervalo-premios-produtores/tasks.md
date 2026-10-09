@@ -31,24 +31,24 @@ Abreviações de caminho:
 
 **Purpose**: projeto Maven compilável, versionamento e configuração base.
 
-- [ ] T001 Criar `.gitignore` (Java, Maven `target/`, IDEs, temporários, `.specify/feature.json`, cópia local `skill-claude-backend-spring/` da raiz) em `.gitignore`
-- [ ] T002 Criar `pom.xml` com parent `spring-boot-starter-parent` 4.1.1, `java.version` 21, dependências `spring-boot-starter-webmvc`, `spring-boot-starter-data-jpa`, `spring-boot-starter-actuator`, `org.apache.commons:commons-csv` (versão em propriedade `dependency.version.commons-csv` = 1.14.1), `h2` (runtime), `lombok` (optional), testes `spring-boot-starter-test` e `spring-boot-resttestclient`; `maven-compiler-plugin` com `parameters` e Lombok em `annotationProcessorPaths`; surefire com `-Duser.timezone=UTC`, em `pom.xml`
-- [ ] T003 Gerar Maven Wrapper (`mvn wrapper:wrapper`) em `mvnw`, `mvnw.cmd`, `.mvn/wrapper/maven-wrapper.properties`
-- [ ] T004 [P] Criar `lombok.config` com `config.stopBubbling = true` e `lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Value` em `lombok.config`
-- [ ] T005 [P] Criar classe principal `GoldenRaspberryApplication` (pacote raiz) em `J/GoldenRaspberryApplication.java`
-- [ ] T006 [P] Criar `R/application.properties` em blocos (`#Aplicacao`, `#Arquivo de filmes`, `#JPA/Hibernate`, `#Servidor`, `#Actuator`): `spring.threads.virtual.enabled=true`, `filme.arquivo-csv=${FILME_ARQUIVO_CSV:classpath:Movielist.csv}`, `spring.jpa.open-in-view=false`, `spring.jpa.hibernate.ddl-auto=validate`, batch de inserção, `server.shutdown=graceful`, `server.error.include-stacktrace=never`, `management.endpoints.web.exposure.include=health`, probes; sem URL de datasource (nome único gerado pelo Boot)
-- [ ] T007 [P] Copiar `challenge/Movielist.csv` sem alteração para `R/Movielist.csv`
+- [X] T001 Criar `.gitignore` (Java, Maven `target/`, IDEs, temporários, `.specify/feature.json`, cópia local `skill-claude-backend-spring/` da raiz) em `.gitignore`
+- [X] T002 Criar `pom.xml` com parent `spring-boot-starter-parent` 4.1.1, `java.version` 21, dependências `spring-boot-starter-webmvc`, `spring-boot-starter-data-jpa`, `spring-boot-starter-actuator`, `org.apache.commons:commons-csv` (versão em propriedade `dependency.version.commons-csv` = 1.14.1), `h2` (runtime), `lombok` (optional), testes `spring-boot-starter-test` e `spring-boot-resttestclient`; `maven-compiler-plugin` com `parameters` e Lombok em `annotationProcessorPaths`; surefire com `-Duser.timezone=UTC`, em `pom.xml`
+- [X] T003 Gerar Maven Wrapper (`mvn wrapper:wrapper`) em `mvnw`, `mvnw.cmd`, `.mvn/wrapper/maven-wrapper.properties`
+- [X] T004 [P] Criar `lombok.config` com `config.stopBubbling = true` e `lombok.copyableAnnotations += org.springframework.beans.factory.annotation.Value` em `lombok.config`
+- [X] T005 [P] Criar classe principal `GoldenRaspberryApplication` (pacote raiz) em `J/GoldenRaspberryApplication.java`
+- [X] T006 [P] Criar `R/application.properties` em blocos (`#Aplicacao`, `#Arquivo de filmes`, `#JPA/Hibernate`, `#Servidor`, `#Actuator`): `spring.threads.virtual.enabled=true`, `filme.arquivo-csv=${FILME_ARQUIVO_CSV:classpath:Movielist.csv}`, `spring.jpa.open-in-view=false`, `spring.jpa.hibernate.ddl-auto=validate`, batch de inserção, `server.shutdown=graceful`, `server.error.include-stacktrace=never`, `management.endpoints.web.exposure.include=health`, probes; sem URL de datasource (nome único gerado pelo Boot)
+- [X] T007 [P] Copiar `challenge/Movielist.csv` sem alteração para `R/Movielist.csv`
 
 ---
 
 ## Phase 2: Foundational (bloqueia todas as histórias)
 
-- [ ] T008 Criar `R/schema.sql` conforme data-model.md: sequences `gen_filme`, `gen_produtorfilme` (incremento 1); `tb_filme` (`id_filme BIGINT NOT NULL`, `nr_ano BIGINT NOT NULL`, `tx_titulo VARCHAR NOT NULL`, `tx_estudios VARCHAR`, `tx_produtores VARCHAR NOT NULL`, `fl_vencedor BOOLEAN NOT NULL`, `filme_pk`); `tb_produtorfilme` (`id_produtorfilme BIGINT NOT NULL`, `cd_filme BIGINT NOT NULL`, `tx_produtor VARCHAR NOT NULL`, `produtorfilme_pk`, `produtorfilme_filme_fk`)
-- [ ] T009 [P] Criar entidade `Filme` (`@Getter @Setter`, `Serializable`, `@SequenceGenerator(allocationSize = 1)`, `@OneToMany(mappedBy = "filme", cascade = PERSIST)` `listaProdutorFilme`, equals/hashCode só pelo id) em `J/repository/domain/Filme.java`
-- [ ] T010 [P] Criar entidade `ProdutorFilme` (`@ManyToOne(fetch = LAZY)` `filme` em `cd_filme`, `produtor` em `tx_produtor`) em `J/repository/domain/ProdutorFilme.java`
-- [ ] T011 [P] Criar Utils locais mínimos (`final`, construtor privado): `LongUtil` (`toLong`, `igual`, `menor`, `maior`, `menos` com `Math.subtractExact`), `ObjectUtil` (`isNull`, `isNotNull`, `isEquals`), `StringUtil` (`STRING_VAZIA`, `isNullOrEmpty`, `notEmpty`) em `J/util/`
-- [ ] T012 [P] Criar `ErroEnum` (`codigo`, `HttpStatus`; `ARQUIVO_FILME_NAO_ENCONTRADO`, `ARQUIVO_FILME_ILEGIVEL`, `CABECALHO_ARQUIVO_FILME_INVALIDO`, `RECURSO_NAO_ENCONTRADO`, `METODO_NAO_SUPORTADO`, `REQUISICAO_INVALIDA`, `ERRO_NAO_TRATADO`) em `J/enumerator/ErroEnum.java`, `BusinessServiceException` (unchecked, carrega `ErroEnum` e parâmetros, preserva causa) em `J/exception/BusinessServiceException.java` e textos em `R/messages.properties`
-- [ ] T013 [P] Criar `RotaConstants` (`CONTEXTO = "/api"`, classe interna `Produtor` com `BASE` e `INTERVALOS_PREMIOS = "/intervalosPremios"`), `RegexConstants` (`SEPARADOR_PRODUTOR`) e `FilmeConstants` (cabeçalho esperado, indicador `yes`, quantidade de colunas) em `J/constants/`
+- [X] T008 Criar `R/schema.sql` conforme data-model.md: sequences `gen_filme`, `gen_produtorfilme` (incremento 1); `tb_filme` (`id_filme BIGINT NOT NULL`, `nr_ano BIGINT NOT NULL`, `tx_titulo VARCHAR NOT NULL`, `tx_estudios VARCHAR`, `tx_produtores VARCHAR NOT NULL`, `fl_vencedor BOOLEAN NOT NULL`, `filme_pk`); `tb_produtorfilme` (`id_produtorfilme BIGINT NOT NULL`, `cd_filme BIGINT NOT NULL`, `tx_produtor VARCHAR NOT NULL`, `produtorfilme_pk`, `produtorfilme_filme_fk`)
+- [X] T009 [P] Criar entidade `Filme` (`@Getter @Setter`, `Serializable`, `@SequenceGenerator(allocationSize = 1)`, `@OneToMany(mappedBy = "filme", cascade = PERSIST)` `listaProdutorFilme`, equals/hashCode só pelo id) em `J/repository/domain/Filme.java`
+- [X] T010 [P] Criar entidade `ProdutorFilme` (`@ManyToOne(fetch = LAZY)` `filme` em `cd_filme`, `produtor` em `tx_produtor`) em `J/repository/domain/ProdutorFilme.java`
+- [X] T011 [P] Criar Utils locais mínimos (`final`, construtor privado): `LongUtil` (`toLong`, `igual`, `menor`, `maior`, `menos` com `Math.subtractExact`), `ObjectUtil` (`isNull`, `isNotNull`, `isEquals`), `StringUtil` (`STRING_VAZIA`, `isNullOrEmpty`, `notEmpty`) em `J/util/`
+- [X] T012 [P] Criar `ErroEnum` (`codigo`, `HttpStatus`; `ARQUIVO_FILME_NAO_ENCONTRADO`, `ARQUIVO_FILME_ILEGIVEL`, `CABECALHO_ARQUIVO_FILME_INVALIDO`, `RECURSO_NAO_ENCONTRADO`, `METODO_NAO_SUPORTADO`, `REQUISICAO_INVALIDA`, `ERRO_NAO_TRATADO`) em `J/enumerator/ErroEnum.java`, `BusinessServiceException` (unchecked, carrega `ErroEnum` e parâmetros, preserva causa) em `J/exception/BusinessServiceException.java` e textos em `R/messages.properties`
+- [X] T013 [P] Criar `RotaConstants` (`CONTEXTO = "/api"`, classe interna `Produtor` com `BASE` e `INTERVALOS_PREMIOS = "/intervalosPremios"`), `RegexConstants` (`SEPARADOR_PRODUTOR`) e `FilmeConstants` (cabeçalho esperado, indicador `yes`, quantidade de colunas) em `J/constants/`
 
 **Checkpoint**: `./mvnw -q compile` passa e o contexto sobe com o schema validado.
 
@@ -60,18 +60,18 @@ Abreviações de caminho:
 
 **Independent Test**: subir com o CSV padrão e comparar a resposta com o JSON calculado à mão.
 
-- [ ] T014 [P] [US1] Criar `SeparacaoProdutorServiceApplication` + `Impl` (`separar(String produtores)` → `List<String>`; `Pattern` de `RegexConstants`, `strip()`, sem vazios, `distinct()`, caixa preservada) em `J/service/application/`
-- [ ] T015 [P] [US1] Criar `FilmeVO` (`record`: `ano`, `titulo`, `estudios`, `produtores`, `vencedor`, `listaProdutor`) em `J/vo/FilmeVO.java`
-- [ ] T016 [US1] Criar `LeituraArquivoFilmeService` + `Impl` (resolve `filme.arquivo-csv` pelo `ResourceLoader`, valida cabeçalho, converte linhas válidas em `FilmeVO`) em `J/service/` e `J/service/impl/`
-- [ ] T017 [US1] Criar `FilmeServiceTransactional` + `Impl` (`salvar(List<FilmeVO>)` com `@Transactional(rollbackFor = Exception.class)`, monta `Filme`/`ProdutorFilme`, `saveAll`) em `J/service/transactional/`
-- [ ] T018 [US1] Criar `ImportacaoFilmeFacade` + `Impl` (lê fora da transação, grava pelo `ServiceTransactional`, log do resumo) em `J/service/facade/` e `ImportacaoFilmeJob` (`ApplicationRunner`, só delega) em `J/job/ImportacaoFilmeJob.java`
-- [ ] T019 [P] [US1] Criar `VitoriaProdutorProjection` (`record`: `produtor`, `ano`) em `J/repository/projection/` e `FilmeRepository` (`CrudRepository<Filme, Long>` com `listarVitoriaProdutor()` — `@Query(nativeQuery = true)` em text block, caixa alta, `WHERE filme.fl_vencedor = TRUE ORDER BY produtorfilme.tx_produtor, filme.nr_ano`) em `J/repository/FilmeRepository.java`
-- [ ] T020 [P] [US1] Criar DTOs `record` `IntervaloPremioDTO` (`@JsonProperty` `producer`, `interval`, `previousWin`, `followingWin`) e `RetornoIntervaloPremioDTO` (`min`, `max`) em `J/dto/`
-- [ ] T021 [US1] Criar `CalculoIntervaloPremioServiceApplication` + `Impl` (percurso linear de pares consecutivos, filtro de empates de mínimo e máximo, ordenação por `producer`, `previousWin`, `followingWin`) em `J/service/application/`
-- [ ] T022 [US1] Criar `IntervaloPremioService` + `Impl` (`adquirir()` → repository + cálculo) em `J/service/`
-- [ ] T023 [US1] Criar `ProdutorController` (interface com `@RequestMapping(RotaConstants.Produtor.BASE)` e `@GetMapping(RotaConstants.Produtor.INTERVALOS_PREMIOS)`) em `J/api/` e `ProdutorControllerImpl` (`@RestController`, log de entrada, `ResponseEntity.ok`) em `J/api/impl/`
-- [ ] T024 [US1] Criar `ErroDTO` em `J/dto/ErroDTO.java` e `ApiExceptionHandler` (`@RestControllerAdvice`, estende `ResponseEntityExceptionHandler`, `handleExceptionInternal` com `@Override`, handler de `Exception` → 500 com `log.error`) em `J/config/ApiExceptionHandler.java`
-- [ ] T025 [US1] Criar `ProdutorControllerTest` (`@SpringBootTest(RANDOM_PORT)`, `@AutoConfigureRestTestClient`) com cenário do CSV original (JSON estrito), contrato (`Content-Type`, campos exatos), 404 e 405 com `ErroDTO` em `T/api/ProdutorControllerTest.java`
+- [X] T014 [P] [US1] Criar `SeparacaoProdutorServiceApplication` + `Impl` (`separar(String produtores)` → `List<String>`; `Pattern` de `RegexConstants`, `strip()`, sem vazios, `distinct()`, caixa preservada) em `J/service/application/`
+- [X] T015 [P] [US1] Criar `FilmeVO` (`record`: `ano`, `titulo`, `estudios`, `produtores`, `vencedor`, `listaProdutor`) em `J/vo/FilmeVO.java`
+- [X] T016 [US1] Criar `LeituraArquivoFilmeService` + `Impl` (resolve `filme.arquivo-csv` pelo `ResourceLoader`, valida cabeçalho, converte linhas válidas em `FilmeVO`) em `J/service/` e `J/service/impl/`
+- [X] T017 [US1] Criar `FilmeServiceTransactional` + `Impl` (`salvar(List<FilmeVO>)` com `@Transactional(rollbackFor = Exception.class)`, monta `Filme`/`ProdutorFilme`, `saveAll`) em `J/service/transactional/`
+- [X] T018 [US1] Criar `ImportacaoFilmeFacade` + `Impl` (lê fora da transação, grava pelo `ServiceTransactional`, log do resumo) em `J/service/facade/` e `ImportacaoFilmeJob` (`SmartInitializingSingleton` — roda antes de o servidor HTTP aceitar conexões; só delega) em `J/job/ImportacaoFilmeJob.java`
+- [X] T019 [P] [US1] Criar `VitoriaProdutorProjection` (`record`: `produtor`, `ano`) em `J/repository/projection/` e `FilmeRepository` (`CrudRepository<Filme, Long>` com `listarVitoriaProdutor()` — `@Query(nativeQuery = true)` em text block, caixa alta, `WHERE filme.fl_vencedor = TRUE ORDER BY produtorfilme.tx_produtor, filme.nr_ano`) em `J/repository/FilmeRepository.java`
+- [X] T020 [P] [US1] Criar DTOs `record` `IntervaloPremioDTO` (`@JsonProperty` `producer`, `interval`, `previousWin`, `followingWin`) e `RetornoIntervaloPremioDTO` (`min`, `max`) em `J/dto/`
+- [X] T021 [US1] Criar `CalculoIntervaloPremioServiceApplication` + `Impl` (percurso linear de pares consecutivos, filtro de empates de mínimo e máximo, ordenação por `producer`, `previousWin`, `followingWin`) em `J/service/application/`
+- [X] T022 [US1] Criar `IntervaloPremioService` + `Impl` (`adquirir()` → repository + cálculo) em `J/service/`
+- [X] T023 [US1] Criar `ProdutorController` (interface com `@RequestMapping(RotaConstants.Produtor.BASE)` e `@GetMapping(RotaConstants.Produtor.INTERVALOS_PREMIOS)`) em `J/api/` e `ProdutorControllerImpl` (`@RestController`, log de entrada, `ResponseEntity.ok`) em `J/api/impl/`
+- [X] T024 [US1] Criar `ErroDTO` em `J/dto/ErroDTO.java` e `ApiExceptionHandler` (`@RestControllerAdvice`, estende `ResponseEntityExceptionHandler`, `handleExceptionInternal` com `@Override`, handler de `Exception` → 500 com `log.error`) em `J/config/ApiExceptionHandler.java`
+- [X] T025 [US1] Criar `ProdutorControllerTest` (`@SpringBootTest(RANDOM_PORT)`, `@AutoConfigureRestTestClient`) com cenário do CSV original (JSON estrito), contrato (`Content-Type`, campos exatos), 404 e 405 com `ErroDTO` em `T/api/ProdutorControllerTest.java`
 
 **Checkpoint**: MVP — `./mvnw verify` verde e endpoint correto com o CSV original.
 
@@ -83,8 +83,8 @@ Abreviações de caminho:
 
 **Independent Test**: cada `@Nested` sobe com um dataset próprio e compara com o JSON esperado à mão.
 
-- [ ] T026 [P] [US2] Criar datasets em `TR/dataset/`: `consecutivas.csv`, `tres-vitorias.csv`, `empate-minimo.csv`, `empate-maximo.csv`, `empates-mesmo-produtor.csv`, `multiplos-produtores.csv` (separadores mistos, aspas, espaços, `, and`, nome repetido no filme), `nao-vencedores.csv`, `anos-repetidos.csv`, `sem-intervalos.csv`, `ordem-aleatoria.csv`, `caixa-diferente.csv`, `intervalo-unico.csv`, `somente-cabecalho.csv`
-- [ ] T027 [US2] Acrescentar a `T/api/ProdutorControllerTest.java` um `@Nested` por dataset de T026 (`@TestPropertySource(properties = "filme.arquivo-csv=classpath:dataset/<arquivo>")`), com JSON esperado calculado à mão e comparação estrita
+- [X] T026 [P] [US2] Criar datasets em `TR/dataset/`: `consecutivas.csv`, `tres-vitorias.csv`, `empate-minimo.csv`, `empate-maximo.csv`, `empates-mesmo-produtor.csv`, `multiplos-produtores.csv` (separadores mistos, aspas, espaços, `, and`, nome repetido no filme), `nao-vencedores.csv`, `anos-repetidos.csv`, `sem-intervalos.csv`, `ordem-aleatoria.csv`, `caixa-diferente.csv`, `intervalo-unico.csv`, `somente-cabecalho.csv`
+- [X] T027 [US2] Acrescentar a `T/api/ProdutorControllerTest.java` um `@Nested` por dataset de T026 (`@TestPropertySource(properties = "filme.arquivo-csv=classpath:dataset/<arquivo>")`), com JSON esperado calculado à mão e comparação estrita
 
 **Checkpoint**: todos os cenários do item 10 do prompt cobertos e verdes.
 
@@ -96,9 +96,9 @@ Abreviações de caminho:
 
 **Independent Test**: subir com dataset de linhas inválidas (resultado só com válidas) e com arquivo ausente/cabeçalho inválido (falha).
 
-- [ ] T028 [P] [US3] Criar `TR/dataset/linhas-invalidas.csv` (ano não numérico, colunas a menos, título vazio, produtores vazios, `winner` desconhecido, linha em branco) e `TR/dataset/cabecalho-invalido.csv`
-- [ ] T029 [US3] Acrescentar `@Nested` de linhas inválidas a `T/api/ProdutorControllerTest.java` (resultado considera só as válidas)
-- [ ] T030 [US3] Criar `T/job/ImportacaoFilmeJobTest.java` (`SpringApplicationBuilder` + `OutputCaptureExtension`): falha com arquivo inexistente, falha com cabeçalho inválido, WARN com número da linha e motivo para cada linha inválida, substituição por `file:` (arquivo temporário fora do classpath)
+- [X] T028 [P] [US3] Criar `TR/dataset/linhas-invalidas.csv` (ano não numérico, colunas a menos, título vazio, produtores vazios, `winner` desconhecido, linha em branco) e `TR/dataset/cabecalho-invalido.csv`
+- [X] T029 [US3] Acrescentar `@Nested` de linhas inválidas a `T/api/ProdutorControllerTest.java` (resultado considera só as válidas)
+- [X] T030 [US3] Criar `T/job/ImportacaoFilmeJobTest.java` (`SpringApplicationBuilder` + `OutputCaptureExtension`): falha com arquivo inexistente, falha com cabeçalho inválido, WARN com número da linha e motivo para cada linha inválida, substituição por `file:` (arquivo temporário fora do classpath)
 
 **Checkpoint**: `./mvnw verify` verde com as três histórias.
 

@@ -90,7 +90,7 @@ src/main/java/br/com/outsera/goldenraspberry/
 ├── dto/RetornoIntervaloPremioDTO.java  IntervaloPremioDTO.java  ErroDTO.java
 ├── enumerator/ErroEnum.java
 ├── exception/BusinessServiceException.java
-├── job/ImportacaoFilmeJob.java                      (ApplicationRunner — entrada sem HTTP)
+├── job/ImportacaoFilmeJob.java                      (SmartInitializingSingleton — entrada sem HTTP)
 ├── repository/FilmeRepository.java
 │   ├── domain/Filme.java  ProdutorFilme.java
 │   └── projection/VitoriaProdutorProjection.java

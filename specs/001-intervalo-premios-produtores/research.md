@@ -75,7 +75,7 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
     descartado.
   - Arquivo inexistente/ilegível ou cabeçalho incompatível → `BusinessServiceException` com
     `ErroEnum` (`ARQUIVO_FILME_NAO_ENCONTRADO`, `ARQUIVO_FILME_ILEGIVEL`,
-    `CABECALHO_ARQUIVO_FILME_INVALIDO`), propagada pelo `ApplicationRunner`: a aplicação não sobe.
+    `CABECALHO_ARQUIVO_FILME_INVALIDO`), propagada pelo `ImportacaoFilmeJob`: a aplicação não sobe.
 - **Razão**: decisão do usuário no clarify; nenhuma linha some sem registro.
 - **Alternativas**: fail-fast para qualquer linha (rejeitada pelo usuário); tabela de rejeitados
   (YAGNI, vetada pelo usuário).
@@ -121,7 +121,7 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
 | OpenAPI (springdoc) no Controller | Sem springdoc | Contrato fixo pelo PDF, um endpoint; evita dependência e endpoints extras (`/swagger-ui`, `/v3/api-docs`). |
 | MapStruct acima de 3 atributos | Conversão manual (`FilmeVO` → `Filme`) num método privado do `ServiceTransactional` | Um único mapeamento; a skill usa "preferir", não "obrigatório"; evita processador de anotação. |
 | Biblioteca compartilhada de Utils e `BusinessServiceException` | Criados localmente (`LongUtil`, `ObjectUtil`, `StringUtil`, `BusinessServiceException` + `ErroEnum`) com o mínimo usado | A biblioteca não existe neste projeto; a skill orienta criar com os mesmos nomes. |
-| `Job` é `@Scheduled` | `ImportacaoFilmeJob` implementa `ApplicationRunner` | É a entrada sem HTTP que roda uma vez no startup; papel equivalente ao do Job (só delega à Facade). |
+| `Job` é `@Scheduled` | `ImportacaoFilmeJob` implementa `SmartInitializingSingleton` | É a entrada sem HTTP que roda uma vez no startup; papel equivalente ao do Job (só delega à Facade). Escolhido no lugar de `ApplicationRunner` porque roda **antes** de o Tomcat aceitar conexões (verificado no log: importação concluída antes de "Tomcat started"); com o runner haveria uma janela em que a API responderia com o banco vazio. |
 | Datas com `Clock` / fuso | Não aplicável | Não há data-hora; o "ano" é número do CSV. |
 | Bean Validation no DTO de entrada | Não aplicável | O endpoint não recebe corpo nem parâmetros. |
 | Segurança (`SecurityFilterChain`) | Sem Spring Security | Dado público, endpoint só de leitura, PDF não exige autenticação; nenhum dado pessoal sensível além de nomes públicos de produtores. |
