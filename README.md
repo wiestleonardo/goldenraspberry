@@ -11,12 +11,12 @@ que obteve dois prêmios **mais rápido**, no formato definido em
 | Item | Versão |
 |---|---|
 | Java | 21 |
-| Spring Boot | 4.1.1 (Spring MVC, Spring Data JPA, Hibernate 7.4, Actuator) |
+| Spring Boot | 4.1.1 (Spring MVC, Spring Data JPA, Hibernate 7.4) |
 | Banco | H2 2.4 embarcado, em memória |
 | CSV | Apache Commons CSV 1.14.1 |
 | Build | Maven 3.9.15 via Maven Wrapper |
 | Testes | JUnit 5 + `@SpringBootTest` + `RestTestClient` (somente integração) |
-| Container | Docker multi-stage (`eclipse-temurin:21`) |
+| Container | Docker multi-stage (`eclipse-temurin:21.0.12.1_1`, fixada por digest) |
 | CI | GitHub Actions |
 
 ## Pré-requisitos
@@ -46,15 +46,15 @@ A aplicação sobe em `http://localhost:8080` e importa o CSV antes de aceitar r
 ./mvnw verify                   # Windows: mvnw.cmd verify
 ```
 
-São 23 testes, todos de integração (o PDF exige somente esse tipo). Cada cenário sobe a aplicação
+São 27 testes, todos de integração (o PDF exige somente esse tipo). Cada cenário sobe a aplicação
 completa (Spring, importação do CSV, H2 e servidor HTTP em porta aleatória) e compara a resposta
 HTTP real, em modo JSON estrito, com o resultado **calculado à mão** a partir do arquivo de entrada
 — o cálculo está comentado em cada cenário:
 
 | Classe | Cenários |
 |---|---|
-| [`ProdutorControllerTest`](src/test/java/br/com/outsera/goldenraspberry/api/ProdutorControllerTest.java) | CSV original; contrato JSON; 404 e 405; vitórias consecutivas; três ou mais vitórias; empate no mínimo; empate no máximo; vários empates do mesmo produtor; vários produtores por filme com separadores mistos (`,`, `and`, `, and`, aspas, espaços, nome repetido); filmes não vencedores; anos repetidos (intervalo 0); nenhum intervalo; arquivo só com cabeçalho; linhas fora de ordem; nomes que diferem só em maiúsculas/minúsculas; intervalo único; arquivo Windows (CRLF + BOM); linhas inválidas |
-| [`ImportacaoFilmeJobTest`](src/test/java/br/com/outsera/goldenraspberry/job/ImportacaoFilmeJobTest.java) | arquivo inexistente e cabeçalho incompatível impedem a subida; WARN com linha e motivo para cada linha inválida; troca do arquivo por um CSV externo (`file:`) |
+| [`ProdutorControllerTest`](src/test/java/br/com/outsera/goldenraspberry/api/ProdutorControllerTest.java) | CSV original; contrato JSON; 404 e 405; vitórias consecutivas; três ou mais vitórias; empate no mínimo; empate no máximo; vários empates do mesmo produtor; vários produtores por filme com separadores mistos (`,`, `and`, `, and`, aspas, espaços, nome repetido); filmes não vencedores; anos repetidos (intervalo 0); nenhum intervalo; arquivo só com cabeçalho; linhas fora de ordem; nomes que diferem só em maiúsculas/minúsculas; intervalo único; arquivo Windows (CRLF + BOM); aspas malformadas; `AND`/`And` como separador; linhas duplicadas × filmes distintos no mesmo ano; linhas inválidas |
+| [`ImportacaoFilmeJobTest`](src/test/java/br/com/outsera/goldenraspberry/job/ImportacaoFilmeJobTest.java) | arquivo inexistente e cabeçalho incompatível impedem a subida; WARN com linha e motivo para cada linha inválida, aspas malformadas e duplicata; troca do arquivo por um CSV externo (`file:`) |
 
 Os datasets ficam em [`src/test/resources/dataset/`](src/test/resources/dataset).
 
@@ -93,7 +93,6 @@ Resposta com o CSV original (`200 OK`, `application/json`):
 - Sem nenhum produtor com duas vitórias: `{"min":[],"max":[]}`.
 - Rota inexistente responde `404` e outro verbo responde `405`, ambos com corpo
   `{"codigo": "...", "mensagem": "..."}`. Stack trace nunca vai na resposta.
-- `GET /actuator/health` (com `/liveness` e `/readiness`) informa a saúde da aplicação.
 
 Contrato completo em [`specs/001-intervalo-premios-produtores/contracts/intervalos-premios.md`](specs/001-intervalo-premios-produtores/contracts/intervalos-premios.md).
 
@@ -112,12 +111,18 @@ docker run --rm -p 8080:8080 -v /caminho:/dados:ro -e FILME_ARQUIVO_CSV=file:/da
 
 Formato esperado: UTF-8 (com ou sem BOM), separador `;`, cabeçalho
 `year;title;studios;producers;winner`, campos entre aspas aceitos, quebras de linha LF ou CRLF.
+Cada linha física é um registro: campo entre aspas com quebra de linha dentro não é suportado (a
+linha é descartada com aviso).
 
 Tratamento de dados inválidos (o PDF não define; decidido na fase de clarificação):
 
 - **Linha inválida** (ano ausente/não numérico/menor que 1, título vazio, nenhum produtor, número de
-  colunas diferente de 5, `winner` diferente de `yes`/vazio): a linha é descartada com log `WARN`
-  informando o número da linha e o motivo, e a importação continua.
+  colunas diferente de 5, `winner` diferente de `yes`/vazio, aspas malformadas como
+  `"Crocodile" Dundee II`): a linha é descartada com log `WARN` informando o número da linha e o
+  motivo, e a importação continua. A linha nunca é "consertada" (aspas não são removidas em
+  silêncio), e uma aspa sem fechar não afeta as linhas seguintes.
+- **Duplicata exata** (linha idêntica a outra já lida, após remover espaços das extremidades e
+  normalizar a caixa do `winner`): descartada com `WARN` citando a linha original.
 - **Problema estrutural** (arquivo inexistente ou ilegível, cabeçalho diferente do esperado): a
   aplicação não sobe e informa o erro.
 
@@ -125,16 +130,17 @@ Tratamento de dados inválidos (o PDF não define; decidido na fase de clarifica
 
 - Só filmes com `winner` = `yes` contam, sem diferenciar maiúsculas e minúsculas e ignorando
   espaços; `winner` vazio indica filme não vencedor.
-- Os produtores de um filme são separados por `,`, ` and ` e `, and`. Cada nome perde apenas os
-  espaços das extremidades; nomes que contêm "and" sem espaço em volta, como "Alexandra", não
-  são quebrados.
+- Os produtores de um filme são separados por `,`, ` and ` e `, and`, com o `and` como palavra
+  inteira em qualquer caixa (`AND`, `And`). Cada nome perde apenas os espaços das extremidades;
+  nomes que contêm "and" sem espaço em volta, como "Alexandra" ou "Anderson", não são quebrados.
 - Nomes são comparados **exatamente**: `Joel Silver` e `joel silver` são produtores distintos. O
   mesmo nome repetido num filme conta uma vez.
 - O intervalo é calculado só entre vitórias **consecutivas** do mesmo produtor, em ordem de ano.
   Vitórias em 2000, 2001 e 2010 geram 1 e 9, nunca 10.
-- Cada filme vencedor é um prêmio, então dois prêmios do mesmo produtor no mesmo ano geram intervalo `0`.
-- Linhas duplicadas no CSV são tratadas como filmes distintos, porque o arquivo não tem
-  identificador de filme.
+- Cada filme vencedor é um prêmio, então dois filmes **distintos** vencedores do mesmo produtor no
+  mesmo ano geram intervalo `0`.
+- A mesma linha repetida não é outro filme: a duplicata é descartada e não cria prêmio nem
+  intervalo `0` artificial.
 
 ## Arquitetura resumida
 
@@ -170,6 +176,10 @@ Modelo de dados (`schema.sql`): `tb_filme` (ano, título, estúdios, texto origi
   comparando cada vitória com a anterior do mesmo produtor, e depois filtra os empates de mínimo e
   máximo. Complexidade: importação O(N) e consulta O(W log W), dominada pela ordenação no banco
   (N = linhas do CSV, W = pares produtor × filme vencedor); memória O(W).
+- **CSV lido linha a linha**, cada linha num parser Commons CSV próprio. Com o arquivo inteiro num
+  só parser, uma aspa malformada aborta a importação ou engole as linhas seguintes, e as opções
+  tolerantes da biblioteca alteram o dado sem aviso (comportamento verificado e registrado no
+  `research.md`, R5).
 - **Ordenação final em Java** (produtor, ano anterior, ano seguinte) para a saída ser determinística
   independentemente da collation do banco.
 - **Importação antes de abrir a porta HTTP.** Com `ApplicationRunner`, a API ficaria acessível com
@@ -203,6 +213,7 @@ Desvios conscientes, todos justificados em
 - Utils mínimos criados localmente, porque a biblioteca compartilhada não existe aqui.
 - Job como `SmartInitializingSingleton` em vez de `@Scheduled`.
 - Sem Spring Security, porque os dados são públicos e de leitura.
+- Sem Actuator: nada no desafio consome o health check, e ele seria um endpoint a mais.
 
 O projeto foi conduzido com o **GitHub Spec Kit**, nas fases constitution → specify → clarify →
 plan → tasks → analyze → implement. Os artefatos estão em

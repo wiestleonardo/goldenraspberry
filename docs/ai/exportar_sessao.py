@@ -82,7 +82,8 @@ def main():
                             prompt_inicial = sanitizar(colado.group(1))
                             linhas += ["## 👤 Usuário", "", "_[prompt inicial — texto integral em `prompt-inicial.md`]_", ""]
                             continue
-                        texto = sanitizar(texto)
+                        # Pedidos colados depois do primeiro ficam na sessão, na íntegra, sem as tags
+                        texto = sanitizar(CONTEUDO_COLADO.sub(lambda correspondencia: correspondencia.group(1), texto))
                         if texto:
                             linhas += ["## 👤 Usuário", "", texto, ""]
                     elif bloco.get("type") == "tool_result":

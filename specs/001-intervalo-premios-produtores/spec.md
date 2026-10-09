@@ -33,6 +33,17 @@ Fonte de autoridade: `challenge/Avaliação - Back-end.pdf` (prevalece sobre est
   removidos. Nenhuma normalização que altere a identidade (sem ignorar caixa). Coberto por teste
   de integração específico.
 
+### Ajustes pós-auditoria — 2026-10-09 (diretivas do usuário, após a auditoria técnica)
+
+- Linha com aspas malformadas (texto depois da aspa de fechamento, aspa sem fechar) é linha
+  individualmente inválida: descartada com WARN, sem interromper a importação nem afetar as linhas
+  seguintes. O dado nunca é corrigido silenciosamente.
+- O separador `and` é palavra inteira em qualquer caixa (`and`, `And`, `AND`); a comparação dos
+  nomes continua exata.
+- Linha idêntica a outra já lida (após remover espaços das extremidades e normalizar a caixa do
+  `winner`) é duplicata e é descartada com WARN; não gera prêmio nem intervalo 0 artificial. Filmes
+  vencedores distintos do mesmo produtor no mesmo ano continuam gerando intervalo 0.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Consultar os intervalos mínimo e máximo entre prêmios (Priority: P1)
@@ -119,6 +130,10 @@ apenas as linhas válidas entram no cálculo; iniciar com cabeçalho incompatív
 
 ### Edge Cases
 
+- Título começando com aspas e texto depois da aspa de fechamento (`"Crocodile" Dundee II`) ou
+  aspa sem fechar: só a linha é descartada.
+- `AND`/`And` como separador; nome que contém "and" sem espaços ("Anderson") não é quebrado.
+- Linha repetida idêntica (duplicata) × dois filmes distintos no mesmo ano.
 - Campo de produtores entre aspas, com espaços excedentes ou com separadores combinados
   (`"A,B , C and  D"`).
 - Mesmo produtor citado duas vezes no mesmo filme (conta como uma vitória daquele filme).
@@ -141,18 +156,21 @@ apenas as linhas válidas entram no cálculo; iniciar com cabeçalho incompatív
   persistir todos os registros no banco de dados embarcado em memória.
 - **FR-002**: O arquivo MUST seguir o layout `year;title;studios;producers;winner` com linha de
   cabeçalho, separador ponto e vírgula e codificação UTF-8; campos entre aspas MUST ser aceitos.
+  Cada linha física é um registro: campo entre aspas com quebra de linha não é suportado.
 - **FR-003**: O caminho do arquivo MUST ser configurável sem alteração de código; o padrão é o
   `Movielist.csv` original, empacotado com a aplicação.
 - **FR-004**: Um filme MUST ser considerado vencedor quando o indicador `winner` for `yes`
   (ignorando caixa e espaços) e não vencedor quando vazio; qualquer outro valor é linha inválida.
 - **FR-005**: Linha individualmente inválida (ano ausente ou não numérico, título ou produtores
-  vazios, número de colunas diferente de 5, indicador de vencedor desconhecido) MUST ser descartada
+  vazios, número de colunas diferente de 5, indicador de vencedor desconhecido, aspas malformadas,
+  duplicata exata de linha anterior) MUST ser descartada
   com log de aviso contendo o número da linha e o motivo, e a importação MUST continuar; nenhuma
   linha é descartada silenciosamente. Linhas totalmente em branco são ignoradas.
 - **FR-005a**: Arquivo inexistente/ilegível ou cabeçalho diferente de
   `year;title;studios;producers;winner` MUST interromper a inicialização com mensagem clara.
 - **FR-006**: O sistema MUST separar os produtores de cada filme em nomes individuais usando como
-  separadores a vírgula, a palavra `and` isolada por espaços e a combinação `, and`, removendo
+  separadores a vírgula, a palavra `and` isolada por espaços (em qualquer caixa) e a combinação
+  `, and`, removendo
   os espaços das extremidades de cada nome. Nomes são comparados exatamente (caixa e grafia
   preservadas); o mesmo nome repetido no mesmo filme conta uma vez.
 - **FR-007**: Para cada produtor, o sistema MUST ordenar suas vitórias por ano e calcular o
@@ -206,7 +224,8 @@ apenas as linhas válidas entram no cálculo; iniciar com cabeçalho incompatív
   diferenciando maiúsculas e minúsculas (`Joel Silver` ≠ `joel silver`) — o PDF não define
   equivalência entre grafias.
 - O mesmo produtor citado mais de uma vez no mesmo filme recebe uma única vitória por filme.
-- Vitórias do mesmo produtor com filmes diferentes no mesmo ano são prêmios distintos (intervalo 0).
+- Vitórias do mesmo produtor com filmes diferentes no mesmo ano são prêmios distintos (intervalo 0);
+  a mesma linha repetida é duplicata e conta uma vez.
 - Política de dados inválidos (o PDF não a define): descarte com WARN por linha; falha apenas para
   problema estrutural do arquivo. Não há tabela de rejeitados nem reprocessamento.
 - Não há autenticação: o enunciado não a exige e a API só expõe dado público.

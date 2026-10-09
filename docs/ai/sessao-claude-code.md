@@ -585,3 +585,417 @@ Latência: 220 ms na primeira chamada (JIT frio) e cerca de 11 ms depois; o SC-0
 - 🔧 `Bash` — Check class size and commit list
 
 - 🔧 `Write` — D:\outsera\docs\ai\README.md
+
+## 🤖 Claude
+
+Marco T031–T036, ponho no README o link para a revisão, regenero a exportação da sessão e confiro se há vazamento:
+
+- 🔧 `Bash` — Mark tasks, link review, regenerate session export, check leaks
+
+- 🔧 `Bash` — Scan export for sensitive strings and show status
+
+- 🔧 `Bash` — Rescan export for sensitive strings
+
+## 🤖 Claude
+
+Nada sensível. Commit final da documentação:
+
+- 🔧 `Bash` — Commit docs and verify nothing unwanted tracked
+
+## 🤖 Claude
+
+A entrega está pronta para revisão. O build e os 23 testes de integração passam no Windows e num Linux limpo, a imagem Docker sobe e responde, e as evidências de IA estão em `docs/ai/`. Falta só uma coisa que eu não posso fazer sem sua autorização: publicar no GitHub. Por isso a pipeline de CI está configurada, mas nunca rodou lá.
+
+**1. O que foi implementado**
+- `GET /api/produtores/intervalosPremios` devolve exatamente o JSON do PDF. Com o CSV original: menor intervalo Joel Silver (1990→1991), maior Matthew Vaughn (2002→2015).
+- O CSV é lido uma vez na inicialização e gravado no H2 em memória, antes de a porta HTTP abrir.
+- O arquivo pode ser trocado sem mexer no código, por `--filme.arquivo-csv=file:...` ou pela variável `FILME_ARQUIVO_CSV`.
+- **Regras:**
+  - Produtores são separados por `,`, ` and ` e `, and`.
+  - Só entram vitórias consecutivas do mesmo produtor.
+  - Todos os empates são mantidos, em ordem fixa.
+  - Duas vitórias no mesmo ano dão intervalo 0.
+  - Nomes são comparados exatamente, então `Joel Silver` e `joel silver` são produtores diferentes.
+- **Dados inválidos:** linha inválida é descartada com aviso no log (número da linha e motivo). Arquivo inexistente ou com cabeçalho errado impede a subida.
+
+**2. Arquitetura:** um único módulo Spring Boot 4.1.1 com Java 21, nas camadas da skill. Cada consulta faz um `SELECT` só, ordenado, e o cálculo percorre a lista uma vez. O custo total é O(N + W log W), onde N é o número de linhas do CSV e W o de vitórias de produtores.
+
+**3. Conformidade com a skill:** a verificação item a item está em `docs/revisao-tecnica.md`. Os desvios são intencionais e justificados em `research.md` (R9):
+- `schema.sql` em vez de Liquibase;
+- sem springdoc;
+- sem MapStruct;
+- utilitários mínimos criados localmente;
+- sem Spring Security.
+
+**4. Testes:** 23 testes, todos de integração, com 15 conjuntos de dados alternativos. Os resultados esperados foram calculados à mão e estão comentados em cada cenário.
+
+**5. Docker:** testei de verdade o build, a subida (usuário não root, health `UP`), a resposta 200 com o JSON correto, a troca do CSV por volume e o encerramento gracioso.
+
+**6. CI:** `.github/workflows/ci.yml` está pronto. Para simular a pipeline, rodei o mesmo comando num Linux limpo, a partir do conteúdo do commit, e passou.
+
+**7. Evidências de IA:** em `docs/ai/`, com o prompt inicial na íntegra, suas três respostas do clarify, as decisões, os problemas e correções, e a exportação da sessão gerada do log real (sem e-mail e sem caminho do seu usuário). A exportação foi feita antes desta mensagem, então este relatório não está nela.
+
+**Defeitos reais encontrados e corrigidos na validação:**
+- **Docker:** a imagem não incluía o `lombok.config`, e por isso o container não subia.
+- **CSV do Excel:** arquivo com BOM (CRLF + BOM, típico de exportação do Excel) impedia a aplicação de iniciar.
+- **CI em Linux:** o `mvnw` estava versionado sem permissão de execução, e a CI falharia.
+- **Spec Kit:** o Analyze apontou que a constitution contradizia sua decisão sobre linhas inválidas; ajustei a constitution (versão 1.0.1).
+
+**8. Pendências e riscos**
+- **Publicação:** a pipeline nunca rodou no GitHub. Também não fiz merge na `main`: ela tem só o commit inicial, e todo o trabalho está na branch `001-intervalo-premios-produtores`.
+- **Linha repetida no CSV:** é tratada como dois filmes e pode gerar intervalo 0. Mantive assim porque o arquivo não identifica filmes; está documentado no README.
+- **Arquivos fora do repositório:** a cópia `skill-claude-backend-spring/` na raiz (com o `.git` do repositório original) ficou de fora pelo `.gitignore`; a versão entregue é a de `.claude/skills/`.
+- **Ambiente:** iniciei o Docker Desktop, que estava parado, e ele continua rodando.
+
+**9. Situação:** pronto para revisão. Para concluir, me diga se quer que eu faça o merge na `main` e se devo publicar no GitHub (e em qual repositório).
+
+## 👤 Usuário
+
+Realize uma auditoria final da implementação do desafio Outsera, sem modificar arquivos inicialmente.
+
+Verifique diretamente o código-fonte, não apenas os relatórios já gerados.
+
+Priorize:
+
+1. Correção do algoritmo de intervalos consecutivos, inclusive empates, produtores compartilhados e anos repetidos.
+2. Correspondência exata entre o contrato JSON implementado e o PDF.
+3. Correção da importação CSV, incluindo separadores, BOM, campos vazios e datasets alternativos.
+4. Conformidade real com a skill `skill-claude-backend-spring`, identificando desvios não justificados.
+5. Ausência de abstrações, endpoints e dependências desnecessárias.
+6. Resultado efetivo de `mvnw.cmd clean verify`.
+7. Validação da configuração Docker e dos comandos documentados.
+8. Integridade dos registros reais de utilização da IA.
+9. Arquivos que serão incluídos no Git, especialmente a skill, sem arquivos temporários ou credenciais.
+10. Estado da branch atual e preparação para publicação no GitHub.
+
+Compare os requisitos do PDF com os arquivos e testes efetivamente implementados.
+
+Apresente uma matriz com cada requisito, sua evidência concreta e o resultado da verificação.
+
+Classifique os problemas identificados como bloqueantes, relevantes ou melhorias opcionais.
+
+Não altere código, não faça merge e não execute push.
+
+Ao final, informe explicitamente se a implementação está pronta para uma revisão humana e publicação, ou quais correções são necessárias.
+
+## 🤖 Claude
+
+Começo a auditoria pelo código-fonte, sem alterar arquivos.
+
+- 🔧 `Bash` — Show git state and dump all main source files
+
+- 🔧 `Read` — ~\.claude\projects\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\tool-results\bk2hadl5o.txt
+
+## 🤖 Claude
+
+Li todo o código de produção, linha a linha. Agora rodo o `mvnw.cmd clean verify` pedido e, em paralelo, levanto o estado do git.
+
+- 🔧 `PowerShell` — Run mvnw.cmd clean verify and summarize results
+
+- 🔧 `Bash` — Audit git branch, tracked files, skill integrity, secrets
+
+- 🔧 `Bash` — Run app against edge-case CSVs outside the repo
+
+- 🔧 `PowerShell` — Stop app instances started for edge-case tests
+
+## 🤖 Claude
+
+Nenhum processo ficou para trás. Agora valido os comandos documentados do Docker e do `spring-boot:run`:
+
+- 🔧 `Bash` — Validate documented Docker commands
+
+- 🔧 `PowerShell` — Validate documented spring-boot:run command
+
+## 🤖 Claude
+
+Minha linha de PowerShell tinha um passo desnecessário (mexia numa variável de ambiente), que foi bloqueado. Repito só o que importa:
+
+- 🔧 `PowerShell` — Validate documented spring-boot:run command
+
+## 🤖 Claude
+
+O `spring-boot:run` também funciona; os dois processos encerrados eram o Maven e a aplicação que eu tinha acabado de subir. Agora confiro a integridade dos registros de IA contra o log original:
+
+- 🔧 `Bash` — Verify AI records match the real session log
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\conferir_registros.py
+
+- 🔧 `Bash` — Compare AI records with session log
+
+- 🔧 `Bash` — Locate Python interpreter
+
+- 🔧 `Bash` — Run record check with explicit Python path
+
+## 🤖 Claude
+
+# Auditoria final do desafio Outsera
+
+A implementação está **pronta para revisão humana**. Não achei nenhum problema bloqueante: o algoritmo está correto, o JSON bate com o PDF e o `mvnw.cmd clean verify` passou. Para **publicar**, recomendo antes corrigir um defeito na importação do CSV (R1), regenerar os registros de IA (R2) e fazer o merge e o push (R3).
+
+Não alterei nenhum arquivo do repositório e não fiz merge nem push. Os efeitos colaterais foram:
+- o `target/` foi recompilado pelo build;
+- a imagem Docker foi reconstruída com o mesmo conteúdo;
+- criei CSVs de borda e um script de conferência só na pasta temporária da sessão;
+- todos os processos e containers de teste foram encerrados.
+
+## Requisitos do PDF × evidência
+
+| # | Requisito | Evidência | Resultado |
+|---|---|---|---|
+| 2.1 | Ler o CSV e inserir em banco na inicialização | `ImportacaoFilmeJob` → `ImportacaoFilmeFacadeImpl` → `LeituraArquivoFilmeServiceImpl` + `FilmeServiceTransactionalImpl.saveAll`; log "206 filmes gravados" antes de "Tomcat started" | ✅ |
+| 3.1 | Maior intervalo e dois prêmios mais rápido | `CalculoIntervaloPremioServiceApplicationImpl`: percorre a lista ordenada uma vez, só pares consecutivos, e filtra todos os empates de mínimo e máximo | ✅ |
+| 6 | Formato da pág. 2 | `RetornoIntervaloPremioDTO` (`min`, `max`) e `IntervaloPremioDTO` (`producer`, `interval`, `previousWin`, `followingWin`, nessa ordem); teste com comparação JSON estrita | ✅ |
+| 4.1 | Richardson nível 2 | `GET /api/produtores/intervalosPremios`; 200/404/405 com corpo padronizado; JSON | ✅ |
+| 4.2 | Somente testes de integração, de acordo com os dados da proposta | 23 testes, nenhum unitário; o CSV original é comparado de forma estrita com o resultado esperado (Joel Silver 1→ / Matthew Vaughn 13) | ✅ |
+| 4.3 | Banco embarcado em memória, sem instalação | H2 `mem` com nome único por contexto (`jdbc:h2:mem:<uuid>` no log) | ✅ |
+| 4.4 | README com execução e testes | `README.md`; comandos validados (tabela abaixo) | ✅ |
+| 4.5 | Repositório git | 11 commits incrementais | ✅ local, **sem remote** |
+| 5.2 | Registro de interações com IA | `docs/ai/`; o `prompt-inicial.md` é **idêntico** ao prompt do log JSONL (conferido por script) | ✅ (ver R2) |
+| Aviso | Precisão com outros datasets | 15 datasets alternativos com resultado calculado à mão; 6 casos de borda extras testados nesta auditoria | ⚠️ ver R1 |
+| 1 | "Leitura da lista de indicados e vencedores" | Interpretação: os requisitos de API (seção 3) pedem só o endpoint de intervalos. Não criei endpoint de listagem, de acordo com a sua instrução de não criar endpoints desnecessários | ✅ (interpretação) |
+
+## Verificações pedidas
+
+| Item | Resultado |
+|---|---|
+| **1. Algoritmo** | Correto por construção: a consulta ordena por produtor e ano, e o laço compara cada vitória só com a anterior do mesmo produtor. Empates, produtor que divide filme, anos repetidos (intervalo 0) e ordem aleatória estão cobertos. O agrupamento depende de o H2 diferenciar maiúsculas de minúsculas, o que está coberto pelo teste `caixa-diferente`. |
+| **2. Contrato JSON** | Exato, sem campos extras; `Content-Type: application/json`. |
+| **3. Importação CSV** | Funcionam: `,`, `and`, `, and`, aspas, espaços, BOM, CRLF, campos vazios, linha inválida (descartada com WARN), arquivo ausente e cabeçalho inválido (falham). Há uma falha com aspas no início de um campo (R1). |
+| **4. Skill** | Camadas, `this.`, construtor com `final`, `public abstract`, SQL, transação, logs, nomes de testes: conferido direto no código, sem desvio não justificado. Os desvios conscientes (Liquibase, springdoc, MapStruct, Job, Security) estão justificados no `research.md` (R9). |
+| **5. Abstrações e dependências** | Dependências: webmvc, data-jpa, actuator, commons-csv, h2, lombok. As camadas existem porque a skill exige; por exemplo, a Facade existe porque só ela pode injetar o `ServiceTransactional`. O único endpoint extra é `/actuator/health` (O8). |
+| **6. `mvnw.cmd clean verify`** | `Tests run: 23, Failures: 0, Errors: 0` — **BUILD SUCCESS**. |
+| **7. Docker e comandos documentados** | Validados de verdade: `docker build`, `docker run` (uid 999, JSON correto), troca de CSV por volume com `FILME_ARQUIVO_CSV`, `java -jar … --filme.arquivo-csv=file:…` e `mvnw spring-boot:run`. |
+| **8. Registros de IA** | O prompt é autêntico e íntegro, e as respostas do clarify são as originais. A exportação parou no commit `58b1bc1`: não inclui o relatório final nem esta auditoria (R2). |
+| **9. Arquivos no git** | 122 arquivos. A skill é idêntica byte a byte à original, sem `.git`. O CSV padrão é idêntico ao do desafio. `target/`, `.specify/feature.json` e a cópia da skill na raiz estão ignorados. Nenhuma credencial: as ocorrências de "password" vêm do `mvnw` padrão e do template do Spec Kit. |
+| **10. Branch** | A branch atual é `001-intervalo-premios-produtores`, com o trabalho todo. A `main` tem só o commit inicial e é ancestral da branch, então o merge é fast-forward. Não há remote configurado e a CI nunca rodou no GitHub. |
+
+## Problemas
+
+**Bloqueantes:** nenhum.
+
+**Relevantes**
+- **R1 — Aspas malformadas numa única linha derrubam a importação inteira.** Um título como `"Crocodile" Dundee II` faz o commons-csv lançar exceção, e a aplicação não sobe (`ARQUIVO_FILME_ILEGIVEL`, reproduzido). Isso contraria a política que você definiu no clarify (linha inválida → WARN e continuar), e o PDF avisa que serão usados outros datasets. A correção é pequena: tornar o parser tolerante a texto depois da aspa de fechamento (`setTrailingData(true)` ou equivalente) e acrescentar um dataset de teste.
+- **R2 — Exportação da sessão desatualizada.** Basta regenerá-la com `docs/ai/exportar_sessao.py` imediatamente antes do commit final.
+- **R3 — Publicação pendente.** Falta merge na `main`, criar o remote e fazer o push. Só depois disso a CI roda pela primeira vez.
+
+**Melhorias opcionais**
+- **O1** — `AND` em maiúsculas não separa produtores; um arquivo assim devolve listas vazias (reproduzido). O CSV original só usa minúsculas.
+- **O2** — Cabeçalho com maiúsculas diferentes (`Year;Title…`) ou com `;` no fim de cada linha impede a subida. É explícito, mas rígido.
+- **O3** — Uma linha duplicada vira dois filmes e gera intervalo 0 (reproduzido). Já está documentado no README.
+- **O4** — Um arquivo que não esteja em UTF-8 tem acentos trocados sem nenhum aviso (reproduzido). O README já diz que o formato esperado é UTF-8.
+- **O5** — Configuração sem uso: as chaves `erro.arquivo-filme-*` do `messages.properties` e o `httpStatus` dos erros de importação nunca são lidos; `spring.sql.init.mode=embedded` repete o valor padrão.
+- **O6** — Aviso de self-attach do Mockito no build, embora o projeto não use Mockito.
+- **O7** — A tarefa T026 do `tasks.md` não lista o dataset `windows-crlf-bom.csv`.
+- **O8** — O Actuator expõe `/actuator/health`, que nada no projeto consome (o `Dockerfile` não tem `HEALTHCHECK`). Vale decidir se fica ou sai.
+- **O9** — As imagens base usam tag flutuante (`21-jdk-noble`), sem fixar digest.
+
+## Parecer
+
+- **Revisão humana:** **sim**, pode seguir agora.
+- **Publicação:** recomendo antes corrigir o R1 e regenerar os registros de IA (R2); depois, merge fast-forward na `main` e push (R3). As melhorias opcionais não impedem a entrega.
+
+Se quiser, aplico o R1 com o teste correspondente, regenero os registros e deixo tudo pronto para o push.
+
+## 👤 Usuário
+
+Com base na auditoria técnica final, realize uma etapa de correção e estabilização antes da publicação.
+
+Priorize correção funcional, aderência ao PDF da Outsera, compatibilidade com datasets alternativos e conformidade obrigatória com a skill `skill-claude-backend-spring`.
+
+Implemente:
+
+1. **R1 — CSV com aspas malformadas:** corrija o comportamento para que registros individualmente inválidos não interrompam toda a importação quando a recuperação for segura. Investigue o comportamento real do Apache Commons CSV antes de alterar configurações. Não aceite silenciosamente dados corrompidos nem utilize `setTrailingData(true)` sem verificar seus efeitos. Crie teste de integração reproduzindo a falha encontrada.
+
+2. **O1 — Separadores de produtores:** trate `and` como palavra inteira, independentemente de maiúsculas/minúsculas, sem alterar a regra de comparação exata dos nomes dos produtores. Inclua teste de integração.
+
+3. **O3 — Linhas duplicadas:** evite que registros exatamente duplicados produzam premiações artificiais e intervalo zero incorreto. Preserve intervalo zero para filmes vencedores distintos do mesmo produtor no mesmo ano. Documente a distinção e teste os dois casos.
+
+4. **O5 — Configurações não utilizadas:** remova somente propriedades comprovadamente desnecessárias, preservando as configurações exigidas para funcionamento.
+
+5. **O7 — Actuator:** avalie se existe benefício concreto no desafio. Caso contrário, remova a dependência e o endpoint adicional, atualizando a validação Docker sem depender do Actuator.
+
+6. **O9 — Docker:** avalie fixar versões das imagens base para aumentar a reprodutibilidade sem adicionar complexidade.
+
+7. **R2 — Evidências de IA:** após concluir as alterações e verificações, atualize os registros utilizando interações autênticas. Não invente histórico nem apresente resumos como transcrições originais.
+
+Não altere requisitos do PDF, não adicione funcionalidades especulativas e não introduza abstrações desnecessárias.
+
+Após as correções:
+
+- Execute `mvnw.cmd clean verify`.
+- Execute novamente os testes com datasets alternativos.
+- Construa a imagem Docker.
+- Inicie o container.
+- Valide o endpoint HTTP e o JSON.
+- Confirme o funcionamento com outro CSV.
+- Revise a conformidade com a skill.
+- Atualize a documentação e a revisão técnica.
+- Verifique o conteúdo destinado ao Git.
+
+Não faça merge nem push ainda.
+
+Ao final, apresente o resultado das correções, os testes executados, eventuais problemas remanescentes e a confirmação de que o projeto está pronto para publicação.
+
+## 🤖 Claude
+
+Começo pelo R1: antes de mexer na configuração, investigo o comportamento real do Commons CSV 1.14.1 com `jshell`.
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\investigacao_csv.jsh
+
+- 🔧 `Bash` — Run jshell experiment on Commons CSV quote handling
+
+## 🤖 Claude
+
+O classpath do experimento pegou um commons-io antigo. Uso o classpath exato que o Maven resolve para o projeto:
+
+- 🔧 `Bash` — Run jshell experiment with project classpath
+
+- 🔧 `Bash` — Check Spring Boot 4.1.1 defaults for configured properties
+
+- 🔧 `Bash` — Inspect exact versions and digests of base images
+
+- 🔧 `Bash` — Confirm versioned tags exist and their digests
+
+## 🤖 Claude
+
+As tags versionadas `21.0.12.1_1-*-noble` existem e batem com os digests atuais. Implemento as correções, começando pela leitura do CSV (R1 + O3):
+
+- 🔧 `Write` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\service\impl\LeituraArquivoFilmeServiceImpl.java
+
+## 🤖 Claude
+
+Ajusto o tratamento do BOM para não depender de índice literal e completo as constantes e os Utils usados:
+
+- 🔧 `Edit` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\service\impl\LeituraArquivoFilmeServiceImpl.java
+
+- 🔧 `Write` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\constants\FilmeConstants.java
+
+- 🔧 `Edit` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\util\LongUtil.java
+
+- 🔧 `Edit` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\util\LongUtil.java
+
+- 🔧 `Write` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\constants\RegexConstants.java
+
+## 🤖 Claude
+
+Confirmo que não há caractere invisível no fonte e ajusto o Javadoc do separador:
+
+- 🔧 `Bash` — Check source for hidden BOM characters
+
+- 🔧 `Edit` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\service\application\SeparacaoProdutorServiceApplication.java
+
+## 🤖 Claude
+
+O Write converteu o escape `\uFEFF` no caractere real, o mesmo problema da rodada anterior. Corrijo por bytes com `sed`:
+
+- 🔧 `Bash` — Replace literal BOM char with escape sequence
+
+## 🤖 Claude
+
+O escape se perdeu no shell. Para não depender de escape nenhum, uso uma expressão numérica:
+
+- 🔧 `Edit` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\constants\FilmeConstants.java
+
+- 🔧 `Bash` — Verify BOM constant is now plain ASCII
+
+## 🤖 Claude
+
+Agora o O7 (Actuator) e o O5 (propriedade redundante):
+
+- 🔧 `Edit` — D:\outsera\pom.xml
+
+- 🔧 `Read` — D:\outsera\src\main\resources\application.properties
+
+- 🔧 `Write` — D:\outsera\src\main\resources\application.properties
+
+## 🤖 Claude
+
+Dockerfile com imagens fixadas (O9):
+
+- 🔧 `Bash` — Pin Docker base images by version and digest
+
+## 🤖 Claude
+
+Novos datasets (R1, O1, O3), com expectativas calculadas à mão:
+
+- 🔧 `Bash` — Create datasets for malformed quotes, AND case, duplicates
+
+- 🔧 `Edit` — D:\outsera\src\test\java\br\com\outsera\goldenraspberry\api\ProdutorControllerTest.java
+
+- 🔧 `Edit` — D:\outsera\src\test\java\br\com\outsera\goldenraspberry\job\ImportacaoFilmeJobTest.java
+
+- 🔧 `PowerShell` — Run mvnw.cmd clean verify after fixes
+
+## 🤖 Claude
+
+27 testes, `BUILD SUCCESS`. Agora a validação Docker sem Actuator: a espera é feita pelo próprio endpoint.
+
+- 🔧 `Bash` — Build image and validate container without Actuator
+
+- 🔧 `Bash` — Confirm pinned base images were used
+
+## 🤖 Claude
+
+A build usou as imagens fixadas. Reexecuto também os CSVs de borda da auditoria anterior, que ficaram fora do repositório, contra o jar novo:
+
+- 🔧 `Bash` — Rerun audit edge-case CSVs against fixed jar
+
+## 🤖 Claude
+
+As três falhas da auditoria foram corrigidas, e o cabeçalho continua estrito por decisão (O2, fora do escopo pedido).
+
+Passo para a documentação. Primeiro localizo o que ficou desatualizado:
+
+- 🔧 `Bash` — Find outdated doc references to update
+
+## 🤖 Claude
+
+Atualizo os artefatos da spec (spec, research, data-model, contrato, plan e tasks) com um script de substituições exatas:
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\atualizar_specs.py
+
+- 🔧 `Bash` — Apply spec artifact updates
+
+## 🤖 Claude
+
+Agora o README:
+
+- 🔧 `Read` — D:\outsera\README.md
+
+- 🔧 `Bash` — Update README for the corrections
+
+- 🔧 `Edit` — D:\outsera\README.md
+
+- 🔧 `Edit` — D:\outsera\README.md
+
+## 🤖 Claude
+
+Commits incrementais desta rodada, seguidos da simulação da CI num Linux limpo sobre o commit:
+
+- 🔧 `Bash` — Commit fixes and simulate CI on clean Linux
+
+## 🤖 Claude
+
+A CI simulada no Linux, sobre o commit, também passou: 27 testes. Reescrevo a revisão técnica com as duas rodadas:
+
+- 🔧 `Write` — D:\outsera\docs\revisao-tecnica.md
+
+- 🔧 `Bash` — Check class size, dataset count, AI README tail
+
+- 🔧 `Bash` — Update AI evidence README with audit and fix rounds
+
+## 🤖 Claude
+
+O escape `\u` voltou a atrapalhar, agora dentro do próprio script. Reescrevo o texto citando "U+FEFF", sem escape, e gravo o script com a ferramenta de escrita:
+
+- 🔧 `Bash` — Inspect script encoding and remove escape sequence
+
+- 🔧 `Bash` — Run the AI README update in UTF-8 mode
+
+## 🤖 Claude
+
+Atualizo o exportador para que os pedidos colados depois do primeiro apareçam na íntegra, sem as tags técnicas, e regenero os registros a partir do log real:
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Bash` — Regenerate session export and verify integrity

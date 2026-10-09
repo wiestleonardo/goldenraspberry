@@ -44,6 +44,3 @@ Regras:
 
 Stack trace nunca vai no corpo.
 
-## Operação
-
-`GET /actuator/health` — saúde da aplicação (Actuator), usado para verificação de container.

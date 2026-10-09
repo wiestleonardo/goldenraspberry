@@ -83,7 +83,7 @@ Abreviações de caminho:
 
 **Independent Test**: cada `@Nested` sobe com um dataset próprio e compara com o JSON esperado à mão.
 
-- [X] T026 [P] [US2] Criar datasets em `TR/dataset/`: `consecutivas.csv`, `tres-vitorias.csv`, `empate-minimo.csv`, `empate-maximo.csv`, `empates-mesmo-produtor.csv`, `multiplos-produtores.csv` (separadores mistos, aspas, espaços, `, and`, nome repetido no filme), `nao-vencedores.csv`, `anos-repetidos.csv`, `sem-intervalos.csv`, `ordem-aleatoria.csv`, `caixa-diferente.csv`, `intervalo-unico.csv`, `somente-cabecalho.csv`
+- [X] T026 [P] [US2] Criar datasets em `TR/dataset/`: `consecutivas.csv`, `tres-vitorias.csv`, `empate-minimo.csv`, `empate-maximo.csv`, `empates-mesmo-produtor.csv`, `multiplos-produtores.csv` (separadores mistos, aspas, espaços, `, and`, nome repetido no filme), `nao-vencedores.csv`, `anos-repetidos.csv`, `sem-intervalos.csv`, `ordem-aleatoria.csv`, `caixa-diferente.csv`, `intervalo-unico.csv`, `somente-cabecalho.csv` e, acrescentado na revisão, `windows-crlf-bom.csv`
 - [X] T027 [US2] Acrescentar a `T/api/ProdutorControllerTest.java` um `@Nested` por dataset de T026 (`@TestPropertySource(properties = "filme.arquivo-csv=classpath:dataset/<arquivo>")`), com JSON esperado calculado à mão e comparação estrita
 
 **Checkpoint**: todos os cenários do item 10 do prompt cobertos e verdes.
@@ -112,6 +112,22 @@ Abreviações de caminho:
 - [X] T034 [P] Criar `README.md` (objetivo, stack, pré-requisitos, execução local, testes, Docker, endpoint, exemplo JSON, troca do CSV, arquitetura, decisões, padrões com link para `.claude/skills/skill-claude-backend-spring/SKILL.md`, evidências de IA)
 - [X] T035 [P] Criar `docs/ai/` (ferramentas, skills, prompt real, decisões, problemas e correções, validações, exportação sanitizada da sessão)
 - [X] T036 Revisão final contra a skill e o PDF (achados por severidade, correções, nova execução de `./mvnw verify`)
+
+---
+
+## Phase 7: Correções pós-auditoria (2026-10-09)
+
+**Purpose**: corrigir os achados da auditoria técnica (R1, O1, O3, O5, O7, O9, R2) antes da publicação.
+
+- [X] T037 Investigar o Commons CSV 1.14.1 (padrão, `trailingData`, `lenientEof`, parse por linha) e registrar em `specs/001-intervalo-premios-produtores/research.md` (R5)
+- [X] T038 [US3] Ler o arquivo linha a linha em `J/service/impl/LeituraArquivoFilmeServiceImpl.java`: aspas malformadas descartam só a linha com WARN; dataset `TR/dataset/aspas-malformadas.csv` e teste `ArquivoComAspasMalformadas`
+- [X] T039 [US2] Separador `and` como palavra inteira em qualquer caixa em `J/constants/RegexConstants.java`; dataset `TR/dataset/and-maiusculas.csv` e teste `ArquivoSeparadorAndEmMaiusculas`
+- [X] T040 [US2] Descartar duplicata exata (WARN com a linha original) preservando intervalo 0 de filmes distintos; dataset `TR/dataset/duplicatas.csv` e teste `ArquivoComLinhasDuplicadas`
+- [X] T041 [US3] Teste de WARN para aspas malformadas e duplicatas em `T/job/ImportacaoFilmeJobTest.java`
+- [X] T042 [P] Remover `spring.sql.init.mode` (default) de `R/application.properties`; manter as propriedades exigidas pela skill
+- [X] T043 [P] Remover `spring-boot-starter-actuator` de `pom.xml` e as propriedades `management.*`; validar o container pelo endpoint da API
+- [X] T044 [P] Fixar as imagens base por versão e digest no `Dockerfile`
+- [X] T045 Atualizar README, `docs/revisao-tecnica.md`, `docs/ai/` (exportação regenerada do log real) e os artefatos desta spec
 
 ---
 

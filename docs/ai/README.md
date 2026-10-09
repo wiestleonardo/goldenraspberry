@@ -6,6 +6,7 @@ sessão real; nada foi reescrito como se fosse transcrição.
 | Arquivo | Conteúdo | Origem |
 |---|---|---|
 | [`prompt-inicial.md`](prompt-inicial.md) | Prompt que iniciou o trabalho, na íntegra | Extraído do log da sessão |
+| [`sessao-claude-code.md`](sessao-claude-code.md) — seções "Usuário" seguintes | Pedidos posteriores do usuário (auditoria e correção), na íntegra | Extraídos do log da sessão |
 | [`sessao-claude-code.md`](sessao-claude-code.md) | Exportação sanitizada da sessão: mensagens do usuário, respostas do clarify, mensagens do assistente e lista de ferramentas chamadas | Gerado do log JSONL do Claude Code por [`exportar_sessao.py`](exportar_sessao.py) |
 | [`../revisao-tecnica.md`](../revisao-tecnica.md) | Revisão final: achados por severidade, conformidade com a skill, validações | Produzido na sessão |
 | [`../../specs/001-intervalo-premios-produtores/`](../../specs/001-intervalo-premios-produtores) | Artefatos do Spec Kit (spec, clarify, plan, research, data-model, contrato, tasks) | Gerados pelos comandos do Spec Kit na sessão |
@@ -36,6 +37,11 @@ o momento em que foi gerada, pouco antes do commit final; o relatório final da 
 7. `speckit-analyze` — achado **CRITICAL**: a constitution dizia que linha inválida interrompe a subida, ao contrário da decisão do clarify.
 8. `speckit-constitution` — emenda PATCH 1.0.1 para alinhar a constitution ao clarify.
 9. `speckit-implement` — implementação, testes, Docker, CI, documentação e revisão final (T001–T036).
+10. **Auditoria** pedida pelo usuário, sem alterar arquivos: código relido, build, Docker e comandos
+    documentados reexecutados, CSVs de borda testados fora do repositório. Resultado: 0 bloqueantes,
+    3 relevantes e 9 melhorias opcionais.
+11. **Correção e estabilização** pedidas pelo usuário (R1, O1, O3, O5, O7, O9, R2): tarefas
+    T037–T045 acrescentadas ao `tasks.md` e executadas; os artefatos da spec foram atualizados.
 
 ## Decisões de negócio tomadas pelo usuário (clarify)
 
@@ -44,6 +50,12 @@ o momento em que foi gerada, pouco antes do commit final; o relatório final da 
 | Duas vitórias do mesmo produtor no mesmo ano contam como intervalo 0? | Sim, intervalo 0. |
 | Linha inválida no CSV deve impedir a subida? | Não. Descartar a linha com WARN (número e motivo) e continuar; falhar só em erro estrutural (arquivo inexistente, cabeçalho incompatível); sem tabela de rejeitados. |
 | Nomes que diferem só em caixa são o mesmo produtor? | Não. Comparação exata, removendo só os espaços das extremidades, com teste dedicado. |
+
+Diretivas do usuário na etapa de correção (texto integral na sessão): aspas malformadas não podem
+interromper a importação inteira nem ser aceitas corrompidas; `and` como palavra inteira em qualquer
+caixa, sem mudar a comparação exata dos nomes; duplicata exata não pode gerar prêmio artificial,
+preservando o intervalo 0 de filmes distintos; remover só configuração comprovadamente
+desnecessária; avaliar Actuator e fixação das imagens.
 
 ## Decisões técnicas e alternativas
 
@@ -57,6 +69,10 @@ Registradas com alternativas e trade-offs em
   vazio durante a importação.
 - Somente testes de integração com HTTP real; resultados esperados calculados à mão e comentados em
   cada cenário.
+- Leitura do CSV linha a linha, depois de investigar o Commons CSV em `jshell`: `trailingData` e
+  `lenientEof` foram rejeitados porque alteram ou perdem dados em silêncio (research R5).
+- Actuator removido por falta de consumidor real (research R9); imagens Docker fixadas por versão e
+  digest (research R11).
 
 ## Problemas encontrados e correções
 
@@ -71,11 +87,16 @@ Registradas com alternativas e trade-offs em
 | 7 | CSV com BOM (Excel/Windows) impedia a subida | Teste de integração novo criado na revisão | BOM removido antes do parser |
 | 8 | Leitura duplicada de campos; literais no teste; caractere invisível no fonte | Revisão de código | Refatoração pontual |
 | 9 | Heredoc do shell falhou ao criar vários arquivos de uma vez (nada foi gravado) | Erro do shell | Arquivos criados um a um com a ferramenta de escrita |
+| 10 | Aspa malformada numa linha derrubava a importação inteira | Auditoria (CSV de borda fora do repositório) | Parser por linha; teste `ArquivoComAspasMalformadas` |
+| 11 | `AND` em maiúsculas não separava produtores; linha duplicada criava intervalo 0 | Auditoria | Regex com `and` sem diferenciar caixa; descarte de duplicata exata; testes dedicados |
+| 12 | Primeira tentativa do experimento em `jshell` falhou (`NoClassDefFoundError`, commons-io antigo no classpath montado à mão) | Erro na execução | Classpath gerado pelo próprio Maven (`dependency:build-classpath`) |
+| 13 | O escape do caractere U+FEFF virou caractere invisível ao gravar o fonte (de novo) e, numa correção por `sed`, perdeu a barra e o u | Varredura de bytes do fonte | Constante escrita sem escape: `String.valueOf((char) 0xFEFF)` |
+| 14 | Atalho `python` do Windows (Microsoft Store) interceptou chamadas | Erro do shell | Uso do caminho completo do interpretador |
 
 ## Resultados das validações
 
 Ver a tabela em [`../revisao-tecnica.md`](../revisao-tecnica.md#validações-executadas). Em resumo:
 
-- 23 testes de integração verdes no Windows e no Linux, este último simulando a CI.
-- Docker build, run, endpoint e stop verificados.
+- 27 testes de integração verdes no Windows e no Linux, este último simulando a CI.
+- Docker build com imagens fixadas, run, endpoint, troca de CSV por volume e stop verificados, sem Actuator.
 - A pipeline do GitHub Actions **não** foi executada no GitHub, porque o repositório não foi publicado.

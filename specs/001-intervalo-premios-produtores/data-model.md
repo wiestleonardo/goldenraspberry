@@ -21,7 +21,7 @@ Relacionamento: `Filme 1 — N ProdutorFilme` (`@OneToMany(mappedBy = "filme", c
 |---|---|---|---|---|
 | `id_produtorfilme` | `BIGINT` (PK `produtorfilme_pk`, sequence `gen_produtorfilme`) | não | `idProdutorFilme` | gerado |
 | `cd_filme` | `BIGINT` (FK `produtorfilme_filme_fk` → `tb_filme`) | não | `filme` (`@ManyToOne(fetch = LAZY)`) | filme de origem |
-| `tx_produtor` | `VARCHAR` | não | `produtor` | nome individual, `strip()`, caixa preservada, único por filme |
+| `tx_produtor` | `VARCHAR` | não | `produtor` | nome individual, `strip()`, caixa preservada, único por filme (separador `and` em qualquer caixa) |
 
 ## Objetos internos
 
@@ -53,6 +53,8 @@ Nomes Java em português (skill) mapeados por `@JsonProperty` para os nomes exig
 | `title` vazio | WARN + descarte |
 | `producers` sem nenhum nome após separação | WARN + descarte |
 | `winner` diferente de `yes`/vazio | WARN + descarte |
+| Aspas malformadas na linha (texto após a aspa de fechamento, aspa sem fechar) | WARN + descarte (só a linha) |
+| Linha idêntica a uma anterior após normalização (duplicata exata) | WARN + descarte, citando a linha original |
 
 ## Ciclo de vida
 

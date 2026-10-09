@@ -18,7 +18,7 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
 - **Decisão**: Spring Boot 4.1.1 (última versão estável; `4.2.0-M2` é milestone).
 - **Razão**: linha corrente recomendada pela skill; Spring Framework 7, Hibernate 7.4, Jackson 3,
   JUnit Jupiter. Starters por tecnologia: `spring-boot-starter-webmvc`,
-  `spring-boot-starter-data-jpa`, `spring-boot-starter-actuator`; testes:
+  `spring-boot-starter-data-jpa`; testes:
   `spring-boot-starter-test`, `spring-boot-resttestclient`.
 - **Alternativas**: 4.0.x (mais antiga, sem vantagem); 3.5.x (fora da stack da skill).
 
@@ -64,6 +64,22 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
   `FILME_ARQUIVO_CSV`).
 - **Razão**: biblioteca consolidada, trata aspas e separadores dentro de campos; `split(";")` à mão
   falharia com campo entre aspas contendo `;`.
+- **Revisão pós-auditoria — parser por linha.** Comportamento do Commons CSV 1.14.1 verificado em
+  `jshell` com o classpath do projeto:
+
+  | Configuração | `1990;"Crocodile" Dundee II;...` | aspa sem fechar no meio do arquivo |
+  |---|---|---|
+  | padrão, arquivo inteiro | `CSVException` aborta a leitura toda | `CSVException` aborta a leitura toda |
+  | `setTrailingData(true)` | aceita e grava `Crocodile Dundee II` (aspas somem sem aviso) | — |
+  | `setLenientEof(true)` | — | engole o resto do arquivo num único campo |
+  | parse de uma linha isolada | `CSVException` só daquela linha | `CSVException` só daquela linha |
+
+  Decisão: ler o arquivo linha a linha (`BufferedReader`) e interpretar cada linha física num parser
+  próprio. Aspas malformadas viram descarte com WARN daquela linha; as seguintes não são afetadas e
+  nenhum dado é alterado. Aspas no meio de um campo não iniciado por aspa continuam literais.
+  Trade-off aceito: campo entre aspas com quebra de linha deixa de ser suportado (vira linha
+  descartada, nunca dado silenciosamente errado); o layout do desafio não usa esse recurso.
+  `trailingData` e `lenientEof` foram rejeitados por alterarem ou perderem dados em silêncio.
 - **Alternativas**: OpenCSV (mais pesada, reflexão), parser próprio (reinventa casos de aspas).
 
 ## R6. Validação e erros de importação (clarify 2026-10-09)
@@ -76,17 +92,23 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
   - Arquivo inexistente/ilegível ou cabeçalho incompatível → `BusinessServiceException` com
     `ErroEnum` (`ARQUIVO_FILME_NAO_ENCONTRADO`, `ARQUIVO_FILME_ILEGIVEL`,
     `CABECALHO_ARQUIVO_FILME_INVALIDO`), propagada pelo `ImportacaoFilmeJob`: a aplicação não sobe.
+  - Pós-auditoria: aspas malformadas e **duplicata exata** também são descarte de linha. A duplicata
+    é detectada pelo próprio `FilmeVO` (record com ano, título, estúdios, produtores, vencedor e
+    lista de produtores já normalizados) como chave de um `LinkedHashMap`, que guarda a linha da
+    primeira ocorrência para o WARN e preserva a ordem. Dois filmes distintos no mesmo ano não são
+    duplicata e continuam gerando intervalo 0.
 - **Razão**: decisão do usuário no clarify; nenhuma linha some sem registro.
 - **Alternativas**: fail-fast para qualquer linha (rejeitada pelo usuário); tabela de rejeitados
   (YAGNI, vetada pelo usuário).
 
 ## R7. Separação de produtores
 
-- **Decisão**: expressão `\s*,\s*(?:and\s+)?|\s+and\s+` (constante em `RegexConstants`, `Pattern`
+- **Decisão**: expressão `\s*,\s*(?:(?i:and)\s+)?|\s+(?i:and)\s+` (constante em `RegexConstants`, `Pattern`
   compilado uma vez), seguida de `strip()` em cada nome, descarte de fragmentos vazios e
   `distinct()` preservando a ordem. Comparação de nomes exata, sem ignorar caixa.
 - **Razão**: cobre `A, B`, `A and B`, `A, B and C`, `A, B, and C` (caso real de 2019 no CSV) e
-  espaços excedentes; `and` só é separador entre espaços, então nomes como "Alexandra" ou
+  espaços excedentes; `and` só é separador entre espaços e como palavra inteira, em qualquer caixa
+  (`(?i:...)` restrito ao separador — os nomes não mudam), então nomes como "Alexandra" ou
   "Anderson" não são quebrados. A comparação exata vem do clarify.
 - **Alternativas**: separar só por vírgula e ` and ` literais — falha com `, and` e com espaços
   duplicados.
@@ -124,6 +146,7 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
 | `Job` é `@Scheduled` | `ImportacaoFilmeJob` implementa `SmartInitializingSingleton` | É a entrada sem HTTP que roda uma vez no startup; papel equivalente ao do Job (só delega à Facade). Escolhido no lugar de `ApplicationRunner` porque roda **antes** de o Tomcat aceitar conexões (verificado no log: importação concluída antes de "Tomcat started"); com o runner haveria uma janela em que a API responderia com o banco vazio. |
 | Datas com `Clock` / fuso | Não aplicável | Não há data-hora; o "ano" é número do CSV. |
 | Bean Validation no DTO de entrada | Não aplicável | O endpoint não recebe corpo nem parâmetros. |
+| Actuator (health de liveness/readiness) | Sem Actuator (removido após a auditoria) | Nenhum consumidor real no desafio: não há orquestrador nem `HEALTHCHECK`, e o endpoint extra contraria a diretiva de não criar endpoints sem necessidade. A validação de container usa o próprio endpoint da API. Em produção com orquestrador, voltaria. |
 | Segurança (`SecurityFilterChain`) | Sem Spring Security | Dado público, endpoint só de leitura, PDF não exige autenticação; nenhum dado pessoal sensível além de nomes públicos de produtores. |
 
 ## R10. Testes de integração
@@ -144,9 +167,16 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
 ## R11. Operação
 
 - **Decisão**: `spring.threads.virtual.enabled=true`, `spring.jpa.open-in-view=false`,
-  `server.shutdown=graceful`, `server.error.include-stacktrace=never`, Actuator expondo só
-  `health` (com probes). Dockerfile multi-stage `eclipse-temurin:21-jdk` → `eclipse-temurin:21-jre`,
-  usuário não root, porta 8080. CI: `actions/setup-java` (Temurin 21, cache Maven) +
+  `server.shutdown=graceful`, `server.error.include-stacktrace=never`. Dockerfile multi-stage
+  `eclipse-temurin:21.0.12.1_1-jdk-noble` → `eclipse-temurin:21.0.12.1_1-jre-noble`, fixadas por
+  versão **e digest** (reprodutibilidade sem nenhuma ferramenta extra), usuário não root, porta 8080.
+- **Propriedades revisadas pós-auditoria** (defaults conferidos no metadata do Boot 4.1.1):
+  `spring.sql.init.mode=embedded` removida (é o default e não consta da skill).
+  `server.shutdown=graceful`, `server.error.include-stacktrace=never` e
+  `server.error.include-message=never` também são default, mas permanecem por estarem nas
+  "propriedades essenciais" e nas regras de segurança da skill (protegem contra mudança de default).
+  As chaves `erro.arquivo-filme-*` de `messages.properties` permanecem: o `ErroEnum` da skill exige
+  código, chave de mensagem e status para cada erro, inclusive os de importação. CI: `actions/setup-java` (Temurin 21, cache Maven) +
   `./mvnw -B verify`.
 - **Razão**: propriedades essenciais de `stack-and-build.md` e `cloud-native.md` aplicáveis ao caso.
 - **Alternativas**: imagem nativa GraalVM (complexidade sem necessidade); `docker build` na CI

@@ -19,8 +19,9 @@ empates de mínimo e máximo. Detalhes e alternativas em [research.md](research.
 
 **Language/Version**: Java 21 (Temurin/Oracle JDK 21; Java 25 não adotado — ver research R1)
 
-**Primary Dependencies**: Spring Boot 4.1.1 (`spring-boot-starter-webmvc`, `spring-boot-starter-data-jpa`,
-`spring-boot-starter-actuator`), Hibernate 7.4 (do Boot), Apache Commons CSV 1.14.1, Lombok (do Boot)
+**Primary Dependencies**: Spring Boot 4.1.1 (`spring-boot-starter-webmvc`, `spring-boot-starter-data-jpa`),
+Hibernate 7.4 (do Boot), Apache Commons CSV 1.14.1, Lombok (do Boot). Actuator removido após a
+auditoria (research R9)
 
 **Storage**: H2 2.4 embarcado em memória, nome único por contexto; schema por `schema.sql`
 
