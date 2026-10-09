@@ -1,19 +1,19 @@
 package br.com.outsera.goldenraspberry.service.impl;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.PushbackReader;
-import java.io.Reader;
+import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.csv.DuplicateHeaderMode;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -36,19 +36,14 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeService {
 
-    // Cabeçalho duplicado ou sem nome não derruba o parser: cai na comparação com o cabeçalho
-    // esperado e vira o erro de cabeçalho incompatível
-    private static final CSVFormat FORMATO_ARQUIVO_FILME = CSVFormat.DEFAULT.builder()
+    // Cada linha física é interpretada isoladamente: com o arquivo inteiro num só parser, uma aspa
+    // malformada aborta a leitura (padrão) ou engole as linhas seguintes (lenientEof), e trailingData
+    // altera o campo sem aviso. Linha a linha, o erro fica restrito à linha, que é descartada com WARN.
+    // Consequência aceita: campo entre aspas com quebra de linha não é suportado (vira linha descartada).
+    private static final CSVFormat FORMATO_LINHA_ARQUIVO_FILME = CSVFormat.DEFAULT.builder()
             .setDelimiter(FilmeConstants.DELIMITADOR_ARQUIVO)
-            .setHeader()
-            .setSkipHeaderRecord(true)
-            .setIgnoreEmptyLines(true)
             .setIgnoreSurroundingSpaces(true)
-            .setAllowMissingColumnNames(true)
-            .setDuplicateHeaderMode(DuplicateHeaderMode.ALLOW_ALL)
             .get();
-
-    private static final int FIM_ARQUIVO = -1;
 
     @Value("${filme.arquivo-csv}")
     private final String arquivoFilme;
@@ -67,12 +62,11 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
             throw new BusinessServiceException(ErroEnum.ARQUIVO_FILME_NAO_ENCONTRADO, this.arquivoFilme);
         }
 
-        try (Reader reader = this.abrirLeitorSemMarcaOrdemByte(resource);
-                CSVParser csvParser = FORMATO_ARQUIVO_FILME.parse(reader)) {
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8))) {
 
-            this.validarCabecalho(csvParser.getHeaderNames());
+            this.validarCabecalho(bufferedReader.readLine());
 
-            return this.converter(csvParser);
+            return this.converter(bufferedReader);
 
         } catch (IOException | UncheckedIOException excecaoLeitura) {
 
@@ -80,22 +74,10 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
         }
     }
 
-    // Arquivo salvo pelo Excel/Windows começa com BOM UTF-8; o Reader do Java não o remove, e o U+FEFF
-    // grudaria no nome da primeira coluna ("year"), quebrando o cabeçalho e o acesso à coluna
-    private Reader abrirLeitorSemMarcaOrdemByte(Resource resource) throws IOException {
+    private void validarCabecalho(String linhaCabecalho) {
 
-        PushbackReader pushbackReader = new PushbackReader(new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8));
-        int primeiroCaractere = pushbackReader.read();
-
-        if (primeiroCaractere != FIM_ARQUIVO && primeiroCaractere != FilmeConstants.MARCA_ORDEM_BYTE) {
-
-            pushbackReader.unread(primeiroCaractere);
-        }
-
-        return pushbackReader;
-    }
-
-    private void validarCabecalho(List<String> listaCabecalho) {
+        List<String> listaCabecalho = ObjectUtil.isNull(linhaCabecalho) ? List.of()
+                : this.separarColunas(this.removerMarcaOrdemByte(linhaCabecalho)).orElse(List.of());
 
         if (ObjectUtil.isEquals(listaCabecalho, FilmeConstants.LISTA_COLUNA_CABECALHO)) {
 
@@ -106,60 +88,107 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
                 FilmeConstants.LISTA_COLUNA_CABECALHO, listaCabecalho);
     }
 
-    private List<FilmeVO> converter(CSVParser csvParser) {
+    // Arquivo salvo pelo Excel/Windows começa com BOM UTF-8; o Reader do Java não o remove, e o U+FEFF
+    // grudaria no nome da primeira coluna ("year")
+    private String removerMarcaOrdemByte(String linhaCabecalho) {
 
-        List<FilmeVO> listaFilmeVO = new ArrayList<>();
+        if (linhaCabecalho.startsWith(FilmeConstants.MARCA_ORDEM_BYTE)) {
+
+            return linhaCabecalho.substring(FilmeConstants.MARCA_ORDEM_BYTE.length());
+        }
+
+        return linhaCabecalho;
+    }
+
+    private List<FilmeVO> converter(BufferedReader bufferedReader) throws IOException {
+
+        // A chave é o próprio filme já normalizado: uma linha idêntica a outra já lida não vira um
+        // segundo prêmio. A ordem de leitura é preservada.
+        Map<FilmeVO, Long> mapaLinhaPorFilmeVO = new LinkedHashMap<>();
         List<Long> listaNumeroLinhaDescartada = new ArrayList<>();
+        Long numeroLinha = FilmeConstants.NUMERO_LINHA_CABECALHO;
 
-        for (CSVRecord csvRecord : csvParser) {
+        for (String linha = bufferedReader.readLine(); ObjectUtil.isNotNull(linha); linha = bufferedReader.readLine()) {
 
-            // Linha física do arquivo (cabeçalho = 1, linhas em branco contadas); num campo entre aspas
-            // com quebra de linha, é a última linha do registro
-            Long numeroLinha = csvParser.getCurrentLineNumber();
+            numeroLinha = LongUtil.soma(numeroLinha, LongUtil.UM);
 
-            if (csvRecord.size() != FilmeConstants.LISTA_COLUNA_CABECALHO.size()) {
+            if (StringUtil.isNullOrEmpty(linha)) {
 
-                this.registrarDescarte(listaNumeroLinhaDescartada, numeroLinha, "quantidade de colunas diferente do cabeçalho");
                 continue;
             }
 
-            FilmeVO filmeVO = this.montarFilmeVO(csvRecord);
-            Optional<String> motivoDescarte = this.identificarMotivoDescarte(filmeVO);
+            Optional<String> motivoDescarte = this.registrarLinha(linha, numeroLinha, mapaLinhaPorFilmeVO);
 
             if (motivoDescarte.isPresent()) {
 
-                this.registrarDescarte(listaNumeroLinhaDescartada, numeroLinha, motivoDescarte.get());
-                continue;
+                log.warn("Linha {} do arquivo de filmes descartada: {}", numeroLinha, motivoDescarte.get());
+                listaNumeroLinhaDescartada.add(numeroLinha);
             }
-
-            listaFilmeVO.add(filmeVO);
         }
 
-        log.info("Arquivo de filmes {} lido: {} linhas válidas e {} descartadas", this.arquivoFilme, listaFilmeVO.size(),
+        log.info("Arquivo de filmes {} lido: {} linhas válidas e {} descartadas", this.arquivoFilme, mapaLinhaPorFilmeVO.size(),
                 listaNumeroLinhaDescartada.size());
 
-        return listaFilmeVO;
+        return new ArrayList<>(mapaLinhaPorFilmeVO.keySet());
     }
 
-    private void registrarDescarte(List<Long> listaNumeroLinhaDescartada, Long numeroLinha, String motivoDescarte) {
+    private Optional<String> registrarLinha(String linha, Long numeroLinha, Map<FilmeVO, Long> mapaLinhaPorFilmeVO) {
 
-        log.warn("Linha {} do arquivo de filmes descartada: {}", numeroLinha, motivoDescarte);
+        Optional<List<String>> listaColuna = this.separarColunas(linha);
 
-        listaNumeroLinhaDescartada.add(numeroLinha);
+        if (listaColuna.isEmpty()) {
+
+            return Optional.of("aspas malformadas");
+        }
+
+        if (listaColuna.get().size() != FilmeConstants.LISTA_COLUNA_CABECALHO.size()) {
+
+            return Optional.of("quantidade de colunas diferente do cabeçalho");
+        }
+
+        FilmeVO filmeVO = this.montarFilmeVO(listaColuna.get());
+        Optional<String> motivoDescarte = this.identificarMotivoDescarte(filmeVO);
+
+        if (motivoDescarte.isPresent()) {
+
+            return motivoDescarte;
+        }
+
+        Long numeroLinhaOriginal = mapaLinhaPorFilmeVO.putIfAbsent(filmeVO, numeroLinha);
+
+        if (ObjectUtil.isNotNull(numeroLinhaOriginal)) {
+
+            return Optional.of("duplicata exata da linha " + numeroLinhaOriginal);
+        }
+
+        return Optional.empty();
+    }
+
+    private Optional<List<String>> separarColunas(String linha) {
+
+        try (CSVParser csvParser = FORMATO_LINHA_ARQUIVO_FILME.parse(new StringReader(linha))) {
+
+            return Optional.of(csvParser.getRecords().getFirst().toList());
+
+        } catch (IOException | UncheckedIOException excecaoAspas) {
+
+            // A linha isolada vem de uma String, sem I/O real: a única falha possível é a sintaxe de aspas
+            return Optional.empty();
+        }
     }
 
     // Monta o VO com o que a linha trouxer; campo ausente ou inválido fica nulo (ou lista vazia) e é
     // rejeitado logo em seguida por identificarMotivoDescarte — o VO incompleto nunca sai desta classe
-    private FilmeVO montarFilmeVO(CSVRecord csvRecord) {
+    private FilmeVO montarFilmeVO(List<String> listaColuna) {
 
-        String produtores = csvRecord.get(FilmeConstants.COLUNA_PRODUTORES).strip();
+        String produtores = listaColuna.get(FilmeConstants.INDICE_COLUNA_PRODUTORES).strip();
 
         return FilmeVO.builder()
-                .ano(LongUtil.toLong(csvRecord.get(FilmeConstants.COLUNA_ANO)))
-                .titulo(csvRecord.get(FilmeConstants.COLUNA_TITULO).strip())
-                .estudios(csvRecord.get(FilmeConstants.COLUNA_ESTUDIOS).strip())
+                .ano(LongUtil.toLong(listaColuna.get(FilmeConstants.INDICE_COLUNA_ANO)))
+                .titulo(listaColuna.get(FilmeConstants.INDICE_COLUNA_TITULO).strip())
+                .estudios(listaColuna.get(FilmeConstants.INDICE_COLUNA_ESTUDIOS).strip())
                 .produtores(produtores)
-                .vencedor(this.identificarVencedor(csvRecord.get(FilmeConstants.COLUNA_VENCEDOR)))
+                .vencedor(this.identificarVencedor(listaColuna.get(FilmeConstants.INDICE_COLUNA_VENCEDOR)))
                 .listaProdutor(this.separacaoProdutorServiceApplication.separar(produtores))
                 .build();
     }

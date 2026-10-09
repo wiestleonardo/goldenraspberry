@@ -417,6 +417,77 @@ class ProdutorControllerTest {
 
     }
 
+    // Descartadas: linha 2 (texto depois da aspa de fechamento) e linha 4 (aspa sem fechar). A leitura
+    // segue nas linhas seguintes. Válidas: A 1991 e 2000 (9); B 2003 e 2004 (1), com aspas no meio do
+    // título (literal) e título entre aspas corretas. Se a linha 2 contasse, A teria 1990-1991 (1)
+    // empatando no mínimo; se a linha 4 contasse, A teria 1991-1995 (4) e 1995-2000 (5).
+    @Nested
+    @TestPropertySource(properties = PROPRIEDADE_ARQUIVO_FILME + "aspas-malformadas.csv")
+    class ArquivoComAspasMalformadas {
+
+        @Autowired
+        private RestTestClient restTestClient;
+
+        @Test
+        void deveDescartarSomenteLinhasComAspasMalformadasQuandoContinuarImportacao() {
+
+            verificarIntervalos(this.restTestClient, """
+                    {
+                      "min": [ { "producer": "Producer B", "interval": 1, "previousWin": 2003, "followingWin": 2004 } ],
+                      "max": [ { "producer": "Producer A", "interval": 9, "previousWin": 1991, "followingWin": 2000 } ]
+                    }
+                    """);
+        }
+
+    }
+
+    // "AND", "And" e ", AND" separam produtores como "and". Producer A: 1990, 1999 (9). Producer B:
+    // 1990, 1992 (2). Producer C: 1992, 1999 (7). "Anderson Andrade" não é quebrado e "producer a"
+    // (minúsculo) continua distinto de "Producer A" — se fossem unificados, A teria 1999-2001 (2)
+    // empatando no mínimo.
+    @Nested
+    @TestPropertySource(properties = PROPRIEDADE_ARQUIVO_FILME + "and-maiusculas.csv")
+    class ArquivoSeparadorAndEmMaiusculas {
+
+        @Autowired
+        private RestTestClient restTestClient;
+
+        @Test
+        void deveSepararProdutoresQuandoAndEstiverEmQualquerCaixa() {
+
+            verificarIntervalos(this.restTestClient, """
+                    {
+                      "min": [ { "producer": "Producer B", "interval": 2, "previousWin": 1990, "followingWin": 1992 } ],
+                      "max": [ { "producer": "Producer A", "interval": 9, "previousWin": 1990, "followingWin": 1999 } ]
+                    }
+                    """);
+        }
+
+    }
+
+    // Linha 3 repete a linha 2 e a linha 7 repete a linha 4 (só espaços nas extremidades e caixa do
+    // winner diferem): são descartadas, então A tem 1990 e 2000 (10), e não um intervalo 0 artificial.
+    // B vence com dois filmes distintos em 2005: o intervalo 0 é legítimo e se mantém.
+    @Nested
+    @TestPropertySource(properties = PROPRIEDADE_ARQUIVO_FILME + "duplicatas.csv")
+    class ArquivoComLinhasDuplicadas {
+
+        @Autowired
+        private RestTestClient restTestClient;
+
+        @Test
+        void deveIgnorarDuplicataExataEManterIntervaloZeroDeFilmesDistintosQuandoHouverLinhasRepetidas() {
+
+            verificarIntervalos(this.restTestClient, """
+                    {
+                      "min": [ { "producer": "Producer B", "interval": 0, "previousWin": 2005, "followingWin": 2005 } ],
+                      "max": [ { "producer": "Producer A", "interval": 10, "previousWin": 1990, "followingWin": 2000 } ]
+                    }
+                    """);
+        }
+
+    }
+
     // Válidas: A 2000 e 2010 (10); B 2012 e 2015 (3). Descartadas (ano "abc", colunas a menos, sem
     // título, sem produtor, winner "no", ano 0, colunas a mais) teriam dado a A vitórias em 2001-2005
     // e um mínimo de 1.

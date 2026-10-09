@@ -9,6 +9,7 @@ public final class LongUtil {
     }
 
     public static final Long ZERO = 0L;
+    public static final Long UM = 1L;
 
     public static Long toLong(String valor) {
 
@@ -40,6 +41,11 @@ public final class LongUtil {
     public static Boolean menor(Long valor1, Long valor2) {
 
         return ObjectUtil.isNotNull(valor1) && ObjectUtil.isNotNull(valor2) && valor1 < valor2;
+    }
+
+    public static Long soma(Long parcela1, Long parcela2) {
+
+        return Math.addExact(parcela1, parcela2);
     }
 
     public static Long menos(Long minuendo, Long subtraendo) {

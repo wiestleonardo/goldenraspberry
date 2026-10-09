@@ -68,6 +68,21 @@ class ImportacaoFilmeJobTest {
         }
     }
 
+    @Test
+    void deveRegistrarAvisoQuandoLinhaTiverAspasMalformadasOuForDuplicata(CapturedOutput capturedOutput) {
+
+        try (ConfigurableApplicationContext configurableApplicationContextAspas = iniciarAplicacao(ARQUIVO_DATASET + "aspas-malformadas.csv");
+                ConfigurableApplicationContext configurableApplicationContextDuplicatas = iniciarAplicacao(ARQUIVO_DATASET + "duplicatas.csv")) {
+
+            assertThat(capturedOutput.getOut())
+                    .contains("Linha 2 do arquivo de filmes descartada: aspas malformadas")
+                    .contains("Linha 4 do arquivo de filmes descartada: aspas malformadas")
+                    .contains("4 linhas válidas e 2 descartadas")
+                    .contains("Linha 3 do arquivo de filmes descartada: duplicata exata da linha 2")
+                    .contains("Linha 7 do arquivo de filmes descartada: duplicata exata da linha 4");
+        }
+    }
+
     // Arquivo fora do classpath, informado como file:. A: 1950-1951 (1) e 1951-1971 (20); nada do
     // arquivo padrão (Joel Silver, Matthew Vaughn) pode aparecer.
     @Test
