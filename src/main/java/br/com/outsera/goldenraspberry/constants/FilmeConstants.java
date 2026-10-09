@@ -9,7 +9,7 @@ public final class FilmeConstants {
     }
 
     public static final char DELIMITADOR_ARQUIVO = ';';
-    public static final String MARCA_ORDEM_BYTE = "﻿";
+    public static final char MARCA_ORDEM_BYTE = 0xFEFF;
 
     public static final String COLUNA_ANO = "year";
     public static final String COLUNA_TITULO = "title";

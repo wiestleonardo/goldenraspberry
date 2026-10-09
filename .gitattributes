@@ -3,3 +3,5 @@
 *.bat text eol=crlf
 *.jar binary
 *.pdf binary
+# Dataset de teste com CRLF e BOM: precisa chegar intacto ao teste
+src/test/resources/dataset/windows-crlf-bom.csv -text

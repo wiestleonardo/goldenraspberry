@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureRestTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.json.JsonCompareMode;
@@ -84,8 +86,8 @@ class ProdutorControllerTest {
         this.restTestClient.method(HttpMethod.POST)
                 .uri(ROTA_INTERVALOS_PREMIOS)
                 .exchange()
-                .expectStatus().isEqualTo(405)
-                .expectHeader().valueEquals("Allow", HttpMethod.GET.name())
+                .expectStatus().isEqualTo(HttpStatus.METHOD_NOT_ALLOWED)
+                .expectHeader().valueEquals(HttpHeaders.ALLOW, HttpMethod.GET.name())
                 .expectBody().json("""
                         { "codigo": "METODO_NAO_SUPORTADO", "mensagem": "Método HTTP não suportado para este recurso." }
                         """, JsonCompareMode.STRICT);
@@ -387,6 +389,28 @@ class ProdutorControllerTest {
                     {
                       "min": [ { "producer": "Producer A", "interval": 4, "previousWin": 2000, "followingWin": 2004 } ],
                       "max": [ { "producer": "Producer A", "interval": 4, "previousWin": 2000, "followingWin": 2004 } ]
+                    }
+                    """);
+        }
+
+    }
+
+    // Arquivo gerado no Windows: BOM UTF-8 antes do cabeçalho e quebras CRLF. A: 1980-1984 (4).
+    // B: 1990-1991 (1). Producer C (entre aspas em 1980, "and" em 1991): 1980-1991 (11).
+    @Nested
+    @TestPropertySource(properties = PROPRIEDADE_ARQUIVO_FILME + "windows-crlf-bom.csv")
+    class ArquivoWindowsComBom {
+
+        @Autowired
+        private RestTestClient restTestClient;
+
+        @Test
+        void deveImportarArquivoQuandoTiverQuebraDeLinhaWindowsEMarcaDeOrdemDeByte() {
+
+            verificarIntervalos(this.restTestClient, """
+                    {
+                      "min": [ { "producer": "Producer B", "interval": 1, "previousWin": 1990, "followingWin": 1991 } ],
+                      "max": [ { "producer": "Producer C", "interval": 11, "previousWin": 1980, "followingWin": 1991 } ]
                     }
                     """);
         }

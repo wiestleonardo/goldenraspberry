@@ -58,7 +58,7 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
 
 - **Decisão**: Apache Commons CSV 1.14.1, `;` como delimitador, aspas `"`, linhas vazias
   ignoradas, cabeçalho lido da primeira linha e comparado exatamente com
-  `year;title;studios;producers;winner` (BOM UTF-8 removido do primeiro nome). Arquivo resolvido
+  `year;title;studios;producers;winner` (BOM UTF-8 removido no início do fluxo de leitura, antes do parser). Arquivo resolvido
   pelo `ResourceLoader` do Spring a partir da propriedade `filme.arquivo-csv`
   (padrão `classpath:Movielist.csv`; aceita `file:/caminho.csv`; variável de ambiente
   `FILME_ARQUIVO_CSV`).
