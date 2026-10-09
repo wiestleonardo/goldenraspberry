@@ -1,0 +1,13 @@
+year;title;studios;producers;winner
+2000;Filme Valido 1;Studio X;Producer A;yes
+abc;Filme Ano Invalido;Studio X;Producer A;yes
+2001;Filme Colunas A Menos;Studio X;Producer A
+2002;;Studio X;Producer A;yes
+2003;Filme Sem Produtor;Studio X;;yes
+2004;Filme Winner Invalido;Studio X;Producer A;no
+
+0;Filme Ano Zero;Studio X;Producer A;yes
+2005;Filme Colunas A Mais;Studio X;Producer A;yes;extra
+2010;Filme Valido 2;Studio X;Producer A;yes
+2012;Filme Valido 3;Studio X;Producer B;yes
+2015;Filme Valido 4;Studio X;Producer B;yes
