@@ -106,12 +106,12 @@ Abreviações de caminho:
 
 ## Phase 6: Polish & Cross-Cutting
 
-- [ ] T031 [P] Criar `Dockerfile` multi-stage (`eclipse-temurin:21-jdk` build com wrapper → `eclipse-temurin:21-jre`, usuário não root, `EXPOSE 8080`) e `.dockerignore`
-- [ ] T032 [P] Criar `.github/workflows/ci.yml` (push/PR, `actions/checkout`, `actions/setup-java` Temurin 21 com cache Maven, `./mvnw -B verify`)
-- [ ] T033 Validar Docker de fato: build, run, `curl` do endpoint, JSON, stop — registrar evidência
-- [ ] T034 [P] Criar `README.md` (objetivo, stack, pré-requisitos, execução local, testes, Docker, endpoint, exemplo JSON, troca do CSV, arquitetura, decisões, padrões com link para `.claude/skills/skill-claude-backend-spring/SKILL.md`, evidências de IA)
-- [ ] T035 [P] Criar `docs/ai/` (ferramentas, skills, prompt real, decisões, problemas e correções, validações, exportação sanitizada da sessão)
-- [ ] T036 Revisão final contra a skill e o PDF (achados por severidade, correções, nova execução de `./mvnw verify`)
+- [X] T031 [P] Criar `Dockerfile` multi-stage (`eclipse-temurin:21-jdk` build com wrapper → `eclipse-temurin:21-jre`, usuário não root, `EXPOSE 8080`) e `.dockerignore`
+- [X] T032 [P] Criar `.github/workflows/ci.yml` (push/PR, `actions/checkout`, `actions/setup-java` Temurin 21 com cache Maven, `./mvnw -B verify`)
+- [X] T033 Validar Docker de fato: build, run, `curl` do endpoint, JSON, stop — registrar evidência
+- [X] T034 [P] Criar `README.md` (objetivo, stack, pré-requisitos, execução local, testes, Docker, endpoint, exemplo JSON, troca do CSV, arquitetura, decisões, padrões com link para `.claude/skills/skill-claude-backend-spring/SKILL.md`, evidências de IA)
+- [X] T035 [P] Criar `docs/ai/` (ferramentas, skills, prompt real, decisões, problemas e correções, validações, exportação sanitizada da sessão)
+- [X] T036 Revisão final contra a skill e o PDF (achados por severidade, correções, nova execução de `./mvnw verify`)
 
 ---
 
