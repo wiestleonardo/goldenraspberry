@@ -1,0 +1,15 @@
+target/
+.git/
+.github/
+.idea/
+.vscode/
+.claude/
+.specify/
+specs/
+docs/
+challenge/
+skill-claude-backend-spring/
+*.md
+*.log
+Dockerfile
+.dockerignore
