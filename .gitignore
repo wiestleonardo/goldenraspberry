@@ -1,0 +1,36 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+pom.xml.versionsBackup
+pom.xml.releaseBackup
+release.properties
+
+# IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated/
+.sts4-cache/
+nbproject/
+bin/
+
+# Sistema operacional e temporários
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*~
+
+# Configuração local do Claude Code (permissões da máquina)
+.claude/settings.local.json
+
+# Cópia local da skill com o .git do repositório original — a versão entregue
+# fica em .claude/skills/skill-claude-backend-spring/
+/skill-claude-backend-spring/
