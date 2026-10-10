@@ -3,8 +3,7 @@
 Desafio técnico Outsera (back-end Java). A API lê, na inicialização, a lista de indicados e
 vencedores da categoria **Pior Filme** do Golden Raspberry Awards (arquivo CSV), grava os dados num
 banco H2 em memória e expõe o produtor com **maior** intervalo entre dois prêmios consecutivos e o
-que obteve dois prêmios **mais rápido**, no formato definido em
-[`challenge/Avaliação - Back-end.pdf`](challenge/Avaliação%20-%20Back-end.pdf).
+que obteve dois prêmios **mais rápido**, no formato definido no enunciado da Outsera (PDF "Avaliação - Back-end").
 
 ## Stack
 
@@ -112,7 +111,7 @@ Erros saem sempre no mesmo formato, sem stack trace:
 ## Como substituir o CSV
 
 O arquivo vem da propriedade `filme.arquivo-csv`. O padrão é `classpath:Movielist.csv`, uma cópia
-fiel de `challenge/Movielist.csv` empacotada no jar. Para trocar, sem alterar código:
+fiel do CSV original do desafio, empacotada no jar. Para trocar, sem alterar código:
 
 ```bash
 java -jar target/golden-raspberry-api-1.0.0.jar --filme.arquivo-csv=file:/caminho/filmes.csv
@@ -244,7 +243,6 @@ plan → tasks → analyze → implement. Os artefatos estão em
 
 | Documento | Conteúdo |
 |---|---|
-| [`challenge/`](challenge) | Enunciado da Outsera (PDF) e CSV original |
 | [`.claude/skills/skill-claude-backend-spring/`](.claude/skills/skill-claude-backend-spring/SKILL.md) | Skill de padrões de código, versionada sem alteração |
 | [`.specify/memory/constitution.md`](.specify/memory/constitution.md) | Princípios do projeto (Spec Kit), com a hierarquia PDF > skill > constitution > spec |
 | [`specs/001-intervalo-premios-produtores/spec.md`](specs/001-intervalo-premios-produtores/spec.md) | Requisitos, cenários de aceite, casos de borda e decisões do clarify |

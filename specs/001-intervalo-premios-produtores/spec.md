@@ -18,7 +18,7 @@ retorna o produtor com maior intervalo entre dois prêmios consecutivos e o que 
 mais rápido, no formato JSON exato do enunciado (min/max com producer, interval, previousWin,
 followingWin)."
 
-Fonte de autoridade: `challenge/Avaliação - Back-end.pdf` (prevalece sobre esta especificação).
+Fonte de autoridade: enunciado da Outsera, PDF "Avaliação - Back-end" (prevalece sobre esta especificação).
 
 ## Clarifications
 

@@ -105,7 +105,7 @@ src/main/java/br/com/outsera/goldenraspberry/
 └── vo/FilmeVO.java
 src/main/resources/
 ├── application.properties  messages.properties  schema.sql
-└── Movielist.csv                                     (cópia fiel de challenge/Movielist.csv)
+└── Movielist.csv                                     (cópia fiel do CSV original do desafio)
 src/test/java/br/com/outsera/goldenraspberry/
 ├── api/ProdutorControllerTest.java                   (@Nested por dataset, HTTP real)
 └── job/ImportacaoFilmeJobTest.java                   (falhas estruturais e WARN de linha inválida)

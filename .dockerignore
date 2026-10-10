@@ -7,7 +7,6 @@ target/
 .specify/
 specs/
 docs/
-challenge/
 .local/
 *.md
 *.log
