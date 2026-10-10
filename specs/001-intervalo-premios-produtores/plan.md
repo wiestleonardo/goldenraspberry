@@ -20,7 +20,7 @@ empates de mínimo e máximo. Detalhes e alternativas em [research.md](research.
 **Language/Version**: Java 21 (Temurin/Oracle JDK 21; Java 25 não adotado — ver research R1)
 
 **Primary Dependencies**: Spring Boot 4.1.1 (`spring-boot-starter-webmvc`, `spring-boot-starter-data-jpa`),
-Hibernate 7.4 (do Boot), Apache Commons CSV 1.14.1, Lombok (do Boot). Actuator removido após a
+Hibernate 7.4 (do Boot), Apache Commons CSV 1.14.1. Sem Lombok (research R9). Actuator removido após a
 auditoria (research R9)
 
 **Storage**: H2 2.4 embarcado em memória, nome único por contexto; schema por `schema.sql`
@@ -48,7 +48,7 @@ semelhante; um endpoint
 | Princípio | Verificação | Situação |
 |---|---|---|
 | I. PDF é autoridade | CSV no startup, H2 em memória, Richardson nível 2, contrato JSON da pág. 2, só testes de integração, README | OK |
-| II. Skill obrigatória | Pacotes/camadas/nomes da skill; par interface + `Impl`; construtor + `final`; `this.`; SQL caixa alta; `@Transactional` só no `ServiceTransactional`; `@Slf4j`; handler global; testes `deve...Quando...` | OK — desvios justificados em research R9 |
+| II. Skill obrigatória | Pacotes/camadas/nomes da skill; par interface + `Impl`; construtor + `final`; `this.`; SQL caixa alta; `@Transactional` só no `ServiceTransactional`; logger SLF4J; handler global; testes `deve...Quando...` | OK — desvios justificados em research R9 |
 | III. Simplicidade | Um módulo; sem cache, paralelismo, mensageria, springdoc, MapStruct, QueryDSL, Liquibase | OK |
 | IV. Correção/determinismo | Intervalos só consecutivos; empates preservados; ordenação explícita em Java; nada fixo | OK |
 | V. Só integração | Nenhum teste unitário; contexto real + HTTP real + H2; expectativas calculadas à mão | OK |
@@ -68,26 +68,26 @@ specs/001-intervalo-premios-produtores/
 ├── plan.md
 ├── research.md
 ├── data-model.md
-├── quickstart.md
-├── contracts/
-│   └── intervalos-premios.md
-├── checklists/requirements.md
 └── tasks.md            (gerado por /speckit-tasks)
+
+contracts/, quickstart.md e checklists/ foram gerados nesta fase e depois incorporados: contrato e
+quickstart ao README.md, resultado do checklist ao spec.md.
 ```
 
 ### Source Code (repository root)
 
 ```text
-pom.xml  mvnw  mvnw.cmd  .mvn/wrapper/  lombok.config
+pom.xml  mvnw  mvnw.cmd  .mvn/wrapper/
 Dockerfile  .dockerignore  .gitignore  README.md
 .github/workflows/ci.yml
-docs/ai/
+docs/revisao-tecnica.md
+docs/ai/README.md  sessao-claude-code.md  exportar_sessao.py
 src/main/java/br/com/outsera/goldenraspberry/
-├── GoldenRaspberryApplication.java
+├── Application.java
 ├── api/ProdutorController.java                      (contrato HTTP)
 │   └── impl/ProdutorControllerImpl.java
 ├── config/ApiExceptionHandler.java                  (@RestControllerAdvice)
-├── constants/RotaConstants.java  RegexConstants.java  FilmeConstants.java
+├── constants/RotaConstants.java  RegexConstants.java
 ├── dto/RetornoIntervaloPremioDTO.java  IntervaloPremioDTO.java  ErroDTO.java
 ├── enumerator/ErroEnum.java
 ├── exception/BusinessServiceException.java

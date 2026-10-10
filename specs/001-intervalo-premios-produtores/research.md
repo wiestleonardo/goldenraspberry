@@ -57,9 +57,10 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
 ## R5. Leitura do CSV
 
 - **Decisão**: Apache Commons CSV 1.14.1, `;` como delimitador, aspas `"`, linhas vazias
-  ignoradas, cabeçalho lido da primeira linha e comparado exatamente com
-  `year;title;studios;producers;winner` (BOM UTF-8 removido no início do fluxo de leitura, antes do parser). Arquivo resolvido
-  pelo `ResourceLoader` do Spring a partir da propriedade `filme.arquivo-csv`
+  ignoradas, cabeçalho lido da primeira linha; cada coluna obrigatória (`year`, `title`, `studios`,
+  `producers`, `winner`) é localizada pelo nome, sem distinção de caixa, aceitando outra ordem e
+  colunas extras (o PDF avisa que a avaliação usa outros conjuntos de dados) (BOM UTF-8 removido no início do fluxo de leitura, antes
+  do parser). Arquivo resolvido pelo `ResourceLoader` do Spring a partir da propriedade `filme.arquivo-csv`
   (padrão `classpath:Movielist.csv`; aceita `file:/caminho.csv`; variável de ambiente
   `FILME_ARQUIVO_CSV`).
 - **Razão**: biblioteca consolidada, trata aspas e separadores dentro de campos; `split(";")` à mão
@@ -147,6 +148,7 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
 | Datas com `Clock` / fuso | Não aplicável | Não há data-hora; o "ano" é número do CSV. |
 | Bean Validation no DTO de entrada | Não aplicável | O endpoint não recebe corpo nem parâmetros. |
 | Actuator (health de liveness/readiness) | Sem Actuator (removido após a auditoria) | Nenhum consumidor real no desafio: não há orquestrador nem `HEALTHCHECK`, e o endpoint extra contraria a diretiva de não criar endpoints sem necessidade. A validação de container usa o próprio endpoint da API. Em produção com orquestrador, voltaria. |
+| Lombok (`@Slf4j`, `@RequiredArgsConstructor`, `@Builder`, `@Getter`/`@Setter`) | Sem Lombok: construtores, getters/setters, `equals`/`hashCode` por id e `Logger` SLF4J escritos à mão; DTO/VO `record` instanciados pelo construtor canônico | Projeto pequeno (poucas classes); dispensa processador de anotação, `lombok.config` e configuração de IDE. O código gerado fica explícito e o build não depende de plugin. |
 | Segurança (`SecurityFilterChain`) | Sem Spring Security | Dado público, endpoint só de leitura, PDF não exige autenticação; nenhum dado pessoal sensível além de nomes públicos de produtores. |
 
 ## R10. Testes de integração
@@ -176,8 +178,9 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
   `server.error.include-message=never` também são default, mas permanecem por estarem nas
   "propriedades essenciais" e nas regras de segurança da skill (protegem contra mudança de default).
   As chaves `erro.arquivo-filme-*` de `messages.properties` permanecem: o `ErroEnum` da skill exige
-  código, chave de mensagem e status para cada erro, inclusive os de importação. CI: `actions/setup-java` (Temurin 21, cache Maven) +
-  `./mvnw -B verify`.
+  código, chave de mensagem e status para cada erro, inclusive os de importação.
+- **CI**: `actions/checkout` + `actions/setup-java` (Temurin 21, cache Maven) + `./mvnw -B verify`,
+  sem etapa de deploy.
 - **Razão**: propriedades essenciais de `stack-and-build.md` e `cloud-native.md` aplicáveis ao caso.
 - **Alternativas**: imagem nativa GraalVM (complexidade sem necessidade); `docker build` na CI
   (fora do escopo pedido para a pipeline).

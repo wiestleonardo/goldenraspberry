@@ -6,12 +6,18 @@ description: "Lista de tarefas da feature 001-intervalo-premios-produtores"
 
 **Input**: Design documents from `specs/001-intervalo-premios-produtores/`
 
-**Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/intervalos-premios.md
+**Prerequisites**: plan.md, spec.md, research.md, data-model.md (o contrato HTTP, gerado em
+`contracts/`, foi depois incorporado ao README — ver T049)
 
 **Tests**: o PDF exige **somente testes de integração** (constitution V). Não há testes unitários.
 As expectativas de cada dataset são calculadas à mão e registradas no próprio teste.
 
 **Organization**: tarefas por história de usuário (US1, US2 — P1; US3 — P2).
+
+**Histórico**: cada tarefa descreve o que foi feito quando foi executada. Mudanças posteriores
+ficaram em tarefas novas, sem reescrever as antigas: o Actuator citado em T002/T006 foi removido
+em T043, `STRING_VAZIA` (T011) em T046, `FilmeConstants` (T013) em T047 e o Lombok (T002/T004)
+em T050.
 
 Abreviações de caminho:
 
@@ -86,7 +92,8 @@ Abreviações de caminho:
 - [X] T026 [P] [US2] Criar datasets em `TR/dataset/`: `consecutivas.csv`, `tres-vitorias.csv`, `empate-minimo.csv`, `empate-maximo.csv`, `empates-mesmo-produtor.csv`, `multiplos-produtores.csv` (separadores mistos, aspas, espaços, `, and`, nome repetido no filme), `nao-vencedores.csv`, `anos-repetidos.csv`, `sem-intervalos.csv`, `ordem-aleatoria.csv`, `caixa-diferente.csv`, `intervalo-unico.csv`, `somente-cabecalho.csv` e, acrescentado na revisão, `windows-crlf-bom.csv`
 - [X] T027 [US2] Acrescentar a `T/api/ProdutorControllerTest.java` um `@Nested` por dataset de T026 (`@TestPropertySource(properties = "filme.arquivo-csv=classpath:dataset/<arquivo>")`), com JSON esperado calculado à mão e comparação estrita
 
-**Checkpoint**: todos os cenários do item 10 do prompt cobertos e verdes.
+**Checkpoint**: todos os cenários do item 10 do prompt inicial (`docs/ai/sessao-claude-code.md`)
+cobertos e verdes.
 
 ---
 
@@ -131,10 +138,27 @@ Abreviações de caminho:
 
 ---
 
+## Phase 8: Validação técnica final e revisão estrutural (2026-10-09)
+
+**Purpose**: confirmar a entrega sem alterar o que funciona e remover só o que é comprovadamente
+desnecessário.
+
+- [X] T046 Validação técnica final: `clean verify`, oráculo independente, medição de desempenho, Docker; remover membros sem uso (`StringUtil.STRING_VAZIA` em `J/util/StringUtil.java`, `listaParametro` em `J/exception/BusinessServiceException.java`)
+- [X] T047 Revisão de complexidade estrutural: mover as constantes de `FilmeConstants` (usadas só pela leitura do CSV) para `private static final` em `J/service/impl/LeituraArquivoFilmeServiceImpl.java` e remover a classe, conforme a skill
+- [X] T048 Organizar a documentação: mapa dos documentos no README, revisão técnica em ordem, índice de IA sem duplicidade e artefatos da spec atualizados (status, cenários e critérios pós-auditoria)
+- [X] T049 Consolidar pastas: contrato e quickstart no `README.md`, resultado do checklist no `spec.md` (removidos `contracts/`, `quickstart.md` e `checklists/`); prompt inicial dentro de `docs/ai/sessao-claude-code.md` (removido `prompt-inicial.md`); cópia local da skill movida da raiz para `.local/` (ignorada)
+- [X] T050 Remover o Lombok (pedido do usuário, mantido após confirmação apesar da skill — desvio em research R9): dependência e configuração do `pom.xml`, `lombok.config` e sua cópia no `Dockerfile`; construtores, getters/setters, `equals`/`hashCode` por id nas entidades e `Logger` SLF4J escritos à mão; DTO/VO `record` pelo construtor canônico
+- [X] T051 Localizar as colunas do CSV pelo nome, sem distinção de caixa, aceitando outra ordem e colunas extras; falha só sem coluna obrigatória (FR-005a), em `J/service/impl/LeituraArquivoFilmeServiceImpl.java`; dataset `colunas-outra-ordem.csv` e teste `ArquivoColunasEmOutraOrdem`
+- [X] T052 Teste diferencial com dados aleatórios contra oráculo independente em `docs/ai/teste_diferencial.py` (fora da suíte do Maven), documentado em `docs/ai/README.md`
+
+---
+
 ## Dependencies & Execution Order
 
 - Setup (T001–T007) → Foundational (T008–T013) → US1 (T014–T025) → US2 (T026–T027) e US3
-  (T028–T030) → Polish (T031–T036).
+  (T028–T030) → Polish (T031–T036) → Correções pós-auditoria (T037–T045) → Validação final e
+  revisão estrutural (T046–T049) → Remoção do Lombok, colunas pelo nome e teste diferencial
+  (T050–T052).
 - US2 e US3 dependem apenas do código de US1 (só acrescentam datasets e testes); podem seguir em
   paralelo entre si.
 - Dentro de US1: T014/T015/T019/T020 em paralelo → T016 → T017 → T018; T021 → T022 → T023 → T024 → T025.

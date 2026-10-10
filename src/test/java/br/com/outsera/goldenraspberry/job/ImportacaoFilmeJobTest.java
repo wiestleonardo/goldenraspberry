@@ -19,7 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.json.JsonCompareMode;
 import org.springframework.test.web.servlet.client.RestTestClient;
 
-import br.com.outsera.goldenraspberry.GoldenRaspberryApplication;
+import br.com.outsera.goldenraspberry.Application;
 import br.com.outsera.goldenraspberry.constants.RotaConstants;
 import br.com.outsera.goldenraspberry.enumerator.ErroEnum;
 import br.com.outsera.goldenraspberry.exception.BusinessServiceException;
@@ -119,7 +119,7 @@ class ImportacaoFilmeJobTest {
 
         // Argumentos de linha de comando, como o operador faria; properties() do builder viraria
         // propriedade padrão, de precedência menor que o application.properties
-        return new SpringApplicationBuilder(GoldenRaspberryApplication.class)
+        return new SpringApplicationBuilder(Application.class)
                 .run("--filme.arquivo-csv=" + arquivoFilme, "--server.port=0");
     }
 

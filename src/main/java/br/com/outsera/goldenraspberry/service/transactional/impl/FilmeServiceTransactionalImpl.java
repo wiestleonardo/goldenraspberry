@@ -12,13 +12,16 @@ import br.com.outsera.goldenraspberry.repository.domain.Filme;
 import br.com.outsera.goldenraspberry.repository.domain.ProdutorFilme;
 import br.com.outsera.goldenraspberry.service.transactional.FilmeServiceTransactional;
 import br.com.outsera.goldenraspberry.vo.FilmeVO;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class FilmeServiceTransactionalImpl implements FilmeServiceTransactional {
 
     private final FilmeRepository filmeRepository;
+
+    public FilmeServiceTransactionalImpl(FilmeRepository filmeRepository) {
+
+        this.filmeRepository = filmeRepository;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)

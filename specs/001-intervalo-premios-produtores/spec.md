@@ -4,7 +4,12 @@
 
 **Created**: 2026-10-09
 
-**Status**: Draft
+**Status**: Implementada (27 testes de integração verdes; ver `docs/revisao-tecnica.md`)
+
+**Qualidade da especificação**: checklist do `/speckit-specify` aprovado (16/16) — conteúdo,
+completude e prontidão. As menções a `GET`, JSON, nível 2 de Richardson e banco em memória vêm do
+enunciado (contrato exigido), não de escolha de implementação. O contrato HTTP completo está no
+`README.md` (seção Endpoint).
 
 **Input**: User description: "API RESTful de leitura da lista de indicados e vencedores da categoria
 Pior Filme do Golden Raspberry Awards (desafio Outsera). Na inicialização, a aplicação lê o arquivo
@@ -123,17 +128,19 @@ apenas as linhas válidas entram no cálculo; iniciar com cabeçalho incompatív
    resultado considera apenas as linhas válidas.
 3. **Given** um caminho de arquivo inexistente, **When** a aplicação inicia, **Then** a
    inicialização falha informando o caminho não encontrado.
-4. **Given** um arquivo cujo cabeçalho não é `year;title;studios;producers;winner`, **When** a
-   aplicação inicia, **Then** a inicialização falha informando o cabeçalho incompatível.
+4. **Given** um arquivo cujo cabeçalho não contém as colunas `year`, `title`, `studios`, `producers` e
+   `winner` (em qualquer ordem e caixa), **When** a aplicação inicia, **Then** a inicialização falha
+   informando o cabeçalho incompatível. Colunas a mais e outra ordem são aceitas.
+5. **Given** uma linha com aspas malformadas (`1990;"Crocodile" Dundee II;...` ou aspa sem fechar),
+   **When** a aplicação inicia, **Then** só essa linha é descartada com WARN e as seguintes são
+   importadas normalmente.
+6. **Given** uma linha idêntica a outra já lida, **When** a aplicação inicia, **Then** ela é
+   descartada com WARN citando a linha original e não gera prêmio nem intervalo 0.
 
 ---
 
 ### Edge Cases
 
-- Título começando com aspas e texto depois da aspa de fechamento (`"Crocodile" Dundee II`) ou
-  aspa sem fechar: só a linha é descartada.
-- `AND`/`And` como separador; nome que contém "and" sem espaços ("Anderson") não é quebrado.
-- Linha repetida idêntica (duplicata) × dois filmes distintos no mesmo ano.
 - Campo de produtores entre aspas, com espaços excedentes ou com separadores combinados
   (`"A,B , C and  D"`).
 - Mesmo produtor citado duas vezes no mesmo filme (conta como uma vitória daquele filme).
@@ -147,6 +154,10 @@ apenas as linhas válidas entram no cálculo; iniciar com cabeçalho incompatív
 - Arquivo apenas com cabeçalho, ou sem vencedores: listas vazias.
 - Indicador de vencedor com variação de caixa ou espaços (`"Yes"`, `" yes "`).
 - Linhas em branco no final do arquivo.
+- Título começando com aspas e texto depois da aspa de fechamento (`"Crocodile" Dundee II`) ou
+  aspa sem fechar: só a linha é descartada.
+- `AND`/`And` como separador; nome que contém "and" sem espaços ("Anderson") não é quebrado.
+- Linha repetida idêntica (duplicata) × dois filmes distintos no mesmo ano.
 
 ## Requirements *(mandatory)*
 
@@ -163,16 +174,17 @@ apenas as linhas válidas entram no cálculo; iniciar com cabeçalho incompatív
   (ignorando caixa e espaços) e não vencedor quando vazio; qualquer outro valor é linha inválida.
 - **FR-005**: Linha individualmente inválida (ano ausente ou não numérico, título ou produtores
   vazios, número de colunas diferente de 5, indicador de vencedor desconhecido, aspas malformadas,
-  duplicata exata de linha anterior) MUST ser descartada
-  com log de aviso contendo o número da linha e o motivo, e a importação MUST continuar; nenhuma
-  linha é descartada silenciosamente. Linhas totalmente em branco são ignoradas.
-- **FR-005a**: Arquivo inexistente/ilegível ou cabeçalho diferente de
-  `year;title;studios;producers;winner` MUST interromper a inicialização com mensagem clara.
+  duplicata exata de linha anterior) MUST ser descartada com log de aviso contendo o número da
+  linha e o motivo, e a importação MUST continuar; nenhuma linha é descartada silenciosamente.
+  Linhas totalmente em branco são ignoradas.
+- **FR-005a**: Arquivo inexistente/ilegível ou cabeçalho sem alguma das colunas `year`, `title`,
+  `studios`, `producers` e `winner` MUST interromper a inicialização com mensagem clara. As colunas
+  MUST ser localizadas pelo nome, sem distinção de caixa; ordem diferente e colunas extras MUST ser
+  aceitas.
 - **FR-006**: O sistema MUST separar os produtores de cada filme em nomes individuais usando como
   separadores a vírgula, a palavra `and` isolada por espaços (em qualquer caixa) e a combinação
-  `, and`, removendo
-  os espaços das extremidades de cada nome. Nomes são comparados exatamente (caixa e grafia
-  preservadas); o mesmo nome repetido no mesmo filme conta uma vez.
+  `, and`, removendo os espaços das extremidades de cada nome. Nomes são comparados exatamente
+  (caixa e grafia preservadas); o mesmo nome repetido no mesmo filme conta uma vez.
 - **FR-007**: Para cada produtor, o sistema MUST ordenar suas vitórias por ano e calcular o
   intervalo (`followingWin - previousWin`) somente entre vitórias consecutivas. Cada filme vencedor
   é um prêmio; duas vitórias no mesmo ano geram intervalo 0.
@@ -207,8 +219,9 @@ apenas as linhas válidas entram no cálculo; iniciar com cabeçalho incompatív
   (Joel Silver 1990→1991 em `min`; Matthew Vaughn 2002→2015 em `max`).
 - **SC-002**: 100% dos datasets alternativos de teste (consecutivas, 3+ vitórias, empates mínimo e
   máximo, múltiplos empates do mesmo produtor, múltiplos produtores, separadores mistos, não
-  vencedores, anos repetidos, ausência de intervalos, ordem aleatória, substituição de arquivo)
-  produzem exatamente o resultado esperado calculado à mão.
+  vencedores, anos repetidos, ausência de intervalos, ordem aleatória, nomes com caixa diferente,
+  arquivo Windows com BOM, aspas malformadas, `AND` em maiúsculas, duplicatas, substituição de
+  arquivo) produzem exatamente o resultado esperado calculado à mão.
 - **SC-003**: A mesma entrada produz sempre a mesma resposta, byte a byte, em execuções repetidas.
 - **SC-004**: Em 100% dos casos testados, linha inválida é descartada sem afetar as válidas, e
   arquivo ausente ou com cabeçalho incompatível impede a inicialização com mensagem clara.

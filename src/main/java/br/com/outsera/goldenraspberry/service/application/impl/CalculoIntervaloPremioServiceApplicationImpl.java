@@ -53,12 +53,10 @@ public class CalculoIntervaloPremioServiceApplicationImpl implements CalculoInte
 
             if (ObjectUtil.isNotNull(vitoriaAnterior) && ObjectUtil.isEquals(vitoriaAnterior.produtor(), vitoriaAtual.produtor())) {
 
-                listaIntervaloPremioDTO.add(IntervaloPremioDTO.builder()
-                        .produtor(vitoriaAtual.produtor())
-                        .intervalo(LongUtil.menos(vitoriaAtual.ano(), vitoriaAnterior.ano()))
-                        .anoPremioAnterior(vitoriaAnterior.ano())
-                        .anoPremioSeguinte(vitoriaAtual.ano())
-                        .build());
+                listaIntervaloPremioDTO.add(new IntervaloPremioDTO(vitoriaAtual.produtor(),
+                        LongUtil.menos(vitoriaAtual.ano(), vitoriaAnterior.ano()),
+                        vitoriaAnterior.ano(),
+                        vitoriaAtual.ano()));
             }
 
             vitoriaAnterior = vitoriaAtual;

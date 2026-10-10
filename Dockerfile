@@ -6,7 +6,7 @@ FROM eclipse-temurin:21.0.12.1_1-jdk-noble@sha256:b468c3fc688b14450571494f588bd9
 WORKDIR /workspace
 
 COPY .mvn/ .mvn/
-COPY mvnw pom.xml lombok.config ./
+COPY mvnw pom.xml ./
 RUN chmod +x mvnw && ./mvnw -B -q dependency:go-offline
 
 COPY src/ src/

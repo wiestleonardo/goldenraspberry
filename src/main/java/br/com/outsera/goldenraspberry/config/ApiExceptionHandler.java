@@ -2,6 +2,8 @@ package br.com.outsera.goldenraspberry.config;
 
 import java.util.Locale;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -14,17 +16,20 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 import br.com.outsera.goldenraspberry.dto.ErroDTO;
 import br.com.outsera.goldenraspberry.enumerator.ErroEnum;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RestControllerAdvice
-@RequiredArgsConstructor
 public class ApiExceptionHandler extends ResponseEntityExceptionHandler {
+
+    private static final Logger log = LoggerFactory.getLogger(ApiExceptionHandler.class);
 
     private static final Locale LOCALE_PORTUGUES_BRASIL = Locale.of("pt", "BR");
 
     private final MessageSource messageSource;
+
+    public ApiExceptionHandler(MessageSource messageSource) {
+
+        this.messageSource = messageSource;
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> tratarExcecaoNaoPrevista(Exception exception) {

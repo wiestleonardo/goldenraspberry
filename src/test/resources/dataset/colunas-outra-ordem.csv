@@ -1,0 +1,7 @@
+Winner;Producers;ID;Title;Year;Studios;
+yes;Producer A;1;Filme A1;1990;Studio X;
+yes;Producer A;2;Filme A2;1995;Studio X;
+yes;Producer B;3;Filme B1;2000;Studio X;
+yes;Producer B;4;Filme B2;2001;Studio X;
+;Producer A;5;Filme A3;1991;Studio X;
+yes;Producer B;6;Filme B3;2002;Studio X;;extra

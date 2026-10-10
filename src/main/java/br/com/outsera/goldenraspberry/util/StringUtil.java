@@ -6,8 +6,6 @@ public final class StringUtil {
 
     }
 
-    public static final String STRING_VAZIA = "";
-
     public static Boolean isNullOrEmpty(String valor) {
 
         return ObjectUtil.isNull(valor) || valor.isBlank();

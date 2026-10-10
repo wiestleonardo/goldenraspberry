@@ -53,7 +53,7 @@ HTTP real, em modo JSON estrito, com o resultado **calculado à mão** a partir 
 
 | Classe | Cenários |
 |---|---|
-| [`ProdutorControllerTest`](src/test/java/br/com/outsera/goldenraspberry/api/ProdutorControllerTest.java) | CSV original; contrato JSON; 404 e 405; vitórias consecutivas; três ou mais vitórias; empate no mínimo; empate no máximo; vários empates do mesmo produtor; vários produtores por filme com separadores mistos (`,`, `and`, `, and`, aspas, espaços, nome repetido); filmes não vencedores; anos repetidos (intervalo 0); nenhum intervalo; arquivo só com cabeçalho; linhas fora de ordem; nomes que diferem só em maiúsculas/minúsculas; intervalo único; arquivo Windows (CRLF + BOM); aspas malformadas; `AND`/`And` como separador; linhas duplicadas × filmes distintos no mesmo ano; linhas inválidas |
+| [`ProdutorControllerTest`](src/test/java/br/com/outsera/goldenraspberry/api/ProdutorControllerTest.java) | CSV original; contrato JSON; 404 e 405; vitórias consecutivas; três ou mais vitórias; empate no mínimo; empate no máximo; vários empates do mesmo produtor; vários produtores por filme com separadores mistos (`,`, `and`, `, and`, aspas, espaços, nome repetido); filmes não vencedores; anos repetidos (intervalo 0); colunas em outra ordem, com outra caixa e colunas extras; nenhum intervalo; arquivo só com cabeçalho; linhas fora de ordem; nomes que diferem só em maiúsculas/minúsculas; intervalo único; arquivo Windows (CRLF + BOM); aspas malformadas; `AND`/`And` como separador; linhas duplicadas × filmes distintos no mesmo ano; linhas inválidas |
 | [`ImportacaoFilmeJobTest`](src/test/java/br/com/outsera/goldenraspberry/job/ImportacaoFilmeJobTest.java) | arquivo inexistente e cabeçalho incompatível impedem a subida; WARN com linha e motivo para cada linha inválida, aspas malformadas e duplicata; troca do arquivo por um CSV externo (`file:`) |
 
 Os datasets ficam em [`src/test/resources/dataset/`](src/test/resources/dataset).
@@ -89,12 +89,25 @@ Resposta com o CSV original (`200 OK`, `application/json`):
 }
 ```
 
+- Raiz com exatamente `min` e `max`; cada item com exatamente `producer` (texto), `interval`,
+  `previousWin` e `followingWin` (inteiros).
 - `min` e `max` trazem **todos** os empates, ordenados por `producer`, `previousWin` e `followingWin`.
-- Sem nenhum produtor com duas vitórias: `{"min":[],"max":[]}`.
-- Rota inexistente responde `404` e outro verbo responde `405`, ambos com corpo
-  `{"codigo": "...", "mensagem": "..."}`. Stack trace nunca vai na resposta.
+- Sem nenhum produtor com duas vitórias: `{"min":[],"max":[]}`. Com um único intervalo no arquivo,
+  ele aparece em `min` e em `max`.
+- Recurso só de leitura: sem parâmetros, sem corpo de entrada, sem autenticação.
 
-Contrato completo em [`specs/001-intervalo-premios-produtores/contracts/intervalos-premios.md`](specs/001-intervalo-premios-produtores/contracts/intervalos-premios.md).
+Erros saem sempre no mesmo formato, sem stack trace:
+
+```json
+{ "codigo": "RECURSO_NAO_ENCONTRADO", "mensagem": "Recurso não encontrado." }
+```
+
+| Situação | Status | `codigo` |
+|---|---|---|
+| Rota inexistente | 404 | `RECURSO_NAO_ENCONTRADO` |
+| Método diferente de `GET` | 405 | `METODO_NAO_SUPORTADO` |
+| Demais erros tratados pelo framework | status do framework | `REQUISICAO_INVALIDA` |
+| Falha não prevista | 500 | `ERRO_NAO_TRATADO` |
 
 ## Como substituir o CSV
 
@@ -114,7 +127,8 @@ Formato esperado: UTF-8 (com ou sem BOM), separador `;`, cabeçalho
 Cada linha física é um registro: campo entre aspas com quebra de linha dentro não é suportado (a
 linha é descartada com aviso).
 
-Tratamento de dados inválidos (o PDF não define; decidido na fase de clarificação):
+Tratamento de dados inválidos (o PDF não define; decidido na fase de clarificação e ajustado após a
+auditoria técnica):
 
 - **Linha inválida** (ano ausente/não numérico/menor que 1, título vazio, nenhum produtor, número de
   colunas diferente de 5, `winner` diferente de `yes`/vazio, aspas malformadas como
@@ -123,8 +137,12 @@ Tratamento de dados inválidos (o PDF não define; decidido na fase de clarifica
   silêncio), e uma aspa sem fechar não afeta as linhas seguintes.
 - **Duplicata exata** (linha idêntica a outra já lida, após remover espaços das extremidades e
   normalizar a caixa do `winner`): descartada com `WARN` citando a linha original.
-- **Problema estrutural** (arquivo inexistente ou ilegível, cabeçalho diferente do esperado): a
-  aplicação não sobe e informa o erro.
+- **Layout do cabeçalho**: cada coluna é localizada pelo nome, sem distinção de maiúsculas/minúsculas.
+  A ordem das colunas não importa e colunas a mais são ignoradas; `year`, `title`, `studios`,
+  `producers` e `winner` são obrigatórias. Linha com quantidade de colunas diferente do cabeçalho é
+  descartada com `WARN`.
+- **Problema estrutural** (arquivo inexistente ou ilegível, coluna obrigatória ausente no
+  cabeçalho): a aplicação não sobe e informa o erro.
 
 ## Regras de negócio adotadas
 
@@ -188,7 +206,9 @@ Modelo de dados (`schema.sql`): `tb_filme` (ano, título, estúdios, texto origi
   ler. Alternativas avaliadas e descartadas: `JdbcClient` para tudo, QueryDSL, função de janela
   `LAG`, cálculo sem banco e cache.
 - **Sem cache, paralelismo ou camadas extras**: os dados não mudam depois do startup e a consulta já
-  é barata.
+  é barata. Medido localmente: com o CSV original, ~11 ms por consulta; com um CSV sintético de
+  20.000 filmes (~100× o original), leitura e validação em 0,4 s, gravação em 4 s (uma vez, no
+  startup) e consulta entre 25 e 90 ms, com resultado idêntico ao de um cálculo independente.
 
 Detalhes, alternativas e trade-offs estão em
 [`specs/001-intervalo-premios-produtores/research.md`](specs/001-intervalo-premios-produtores/research.md).
@@ -200,7 +220,7 @@ Todo o código segue a skill de time
 versionada neste repositório sem alteração. Ela define pacotes e camadas; nomenclatura (domínio em
 português, esqueleto técnico em inglês); o par interface + `Impl`; injeção por construtor com
 campos `final`; `this.` em todo membro; SQL em caixa alta; `@Transactional` só no
-`ServiceTransactional`; logs `@Slf4j` com placeholders; tratamento global de erros; e testes
+`ServiceTransactional`; logs SLF4J com placeholders; tratamento global de erros; e testes
 `deve<Resultado>Quando<Condicao>`. A conformidade é exigida pela
 [constitution do projeto](.specify/memory/constitution.md).
 
@@ -220,13 +240,26 @@ plan → tasks → analyze → implement. Os artefatos estão em
 [`specs/001-intervalo-premios-produtores/`](specs/001-intervalo-premios-produtores) e em
 [`.specify/memory/constitution.md`](.specify/memory/constitution.md).
 
+## Mapa da documentação
+
+| Documento | Conteúdo |
+|---|---|
+| [`challenge/`](challenge) | Enunciado da Outsera (PDF) e CSV original |
+| [`.claude/skills/skill-claude-backend-spring/`](.claude/skills/skill-claude-backend-spring/SKILL.md) | Skill de padrões de código, versionada sem alteração |
+| [`.specify/memory/constitution.md`](.specify/memory/constitution.md) | Princípios do projeto (Spec Kit), com a hierarquia PDF > skill > constitution > spec |
+| [`specs/001-intervalo-premios-produtores/spec.md`](specs/001-intervalo-premios-produtores/spec.md) | Requisitos, cenários de aceite, casos de borda e decisões do clarify |
+| [`specs/…/plan.md`](specs/001-intervalo-premios-produtores/plan.md) e [`research.md`](specs/001-intervalo-premios-produtores/research.md) | Plano técnico, decisões com alternativas e trade-offs, desvios da skill (R9) |
+| [`specs/…/data-model.md`](specs/001-intervalo-premios-produtores/data-model.md) | Tabelas e regras de validação do CSV (o contrato HTTP está na seção Endpoint, acima) |
+| [`specs/…/tasks.md`](specs/001-intervalo-premios-produtores/tasks.md) | Tarefas executadas (T001–T049) |
+| [`docs/revisao-tecnica.md`](docs/revisao-tecnica.md) | Estado atual (PDF e skill) e histórico das revisões, com achados por severidade e validações |
+| [`docs/ai/`](docs/ai/README.md) | Evidências reais do uso de IA: índice, sessões exportadas (com o prompt inicial), script de exportação e teste diferencial com dados aleatórios |
+
 ## Uso de IA
 
 O projeto foi desenvolvido com **Claude Code**, o **GitHub Spec Kit** e a skill
 `skill-claude-backend-spring`. As evidências reais estão em **[`docs/ai/`](docs/ai/README.md)**:
-prompt inicial, respostas da fase clarify, decisões, problemas encontrados e corrigidos, resultados
-das validações e a exportação sanitizada da sessão. A revisão técnica final (achados por severidade e conformidade com a skill) está em
-[`docs/revisao-tecnica.md`](docs/revisao-tecnica.md).
+o prompt inicial e os demais pedidos, as respostas da fase clarify, as decisões, os problemas encontrados e
+corrigidos, os resultados das validações e a exportação sanitizada da sessão.
 
 ## CI
 

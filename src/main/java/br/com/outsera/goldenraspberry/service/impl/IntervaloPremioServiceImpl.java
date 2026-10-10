@@ -9,15 +9,20 @@ import br.com.outsera.goldenraspberry.repository.FilmeRepository;
 import br.com.outsera.goldenraspberry.repository.projection.VitoriaProdutorProjection;
 import br.com.outsera.goldenraspberry.service.IntervaloPremioService;
 import br.com.outsera.goldenraspberry.service.application.CalculoIntervaloPremioServiceApplication;
-import lombok.RequiredArgsConstructor;
 
 @Service
-@RequiredArgsConstructor
 public class IntervaloPremioServiceImpl implements IntervaloPremioService {
 
     private final FilmeRepository filmeRepository;
 
     private final CalculoIntervaloPremioServiceApplication calculoIntervaloPremioServiceApplication;
+
+    public IntervaloPremioServiceImpl(FilmeRepository filmeRepository,
+            CalculoIntervaloPremioServiceApplication calculoIntervaloPremioServiceApplication) {
+
+        this.filmeRepository = filmeRepository;
+        this.calculoIntervaloPremioServiceApplication = calculoIntervaloPremioServiceApplication;
+    }
 
     @Override
     public RetornoIntervaloPremioDTO adquirir() {

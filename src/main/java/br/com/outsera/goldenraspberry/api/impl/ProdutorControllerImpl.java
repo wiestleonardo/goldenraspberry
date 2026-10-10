@@ -1,27 +1,32 @@
 package br.com.outsera.goldenraspberry.api.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 
 import br.com.outsera.goldenraspberry.api.ProdutorController;
 import br.com.outsera.goldenraspberry.dto.RetornoIntervaloPremioDTO;
 import br.com.outsera.goldenraspberry.service.IntervaloPremioService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @RestController
-@RequiredArgsConstructor
 public class ProdutorControllerImpl implements ProdutorController {
 
-    private final IntervaloPremioService intervaloPremioService;
+	private static final Logger log = LoggerFactory.getLogger(ProdutorControllerImpl.class);
 
-    @Override
-    public ResponseEntity<RetornoIntervaloPremioDTO> adquirirIntervalosPremios() {
+	private final IntervaloPremioService intervaloPremioService;
 
-        log.info("Adquirindo os intervalos de prêmios dos produtores");
+	public ProdutorControllerImpl(IntervaloPremioService intervaloPremioService) {
 
-        return ResponseEntity.ok(this.intervaloPremioService.adquirir());
-    }
+		this.intervaloPremioService = intervaloPremioService;
+	}
+
+	@Override
+	public ResponseEntity<RetornoIntervaloPremioDTO> adquirirIntervalosPremios() {
+
+		log.info("Adquirindo os intervalos de prêmios dos produtores");
+
+		return ResponseEntity.ok(this.intervaloPremioService.adquirir());
+	}
 
 }

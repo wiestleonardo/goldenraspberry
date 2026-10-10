@@ -2,9 +2,6 @@ package br.com.outsera.goldenraspberry.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import lombok.Builder;
-
-@Builder
 public record IntervaloPremioDTO(
 
         @JsonProperty("producer")

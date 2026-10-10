@@ -8,7 +8,7 @@ target/
 specs/
 docs/
 challenge/
-skill-claude-backend-spring/
+.local/
 *.md
 *.log
 Dockerfile

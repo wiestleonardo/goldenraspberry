@@ -2,11 +2,6 @@ package br.com.outsera.goldenraspberry.enumerator;
 
 import org.springframework.http.HttpStatus;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-
-@Getter
-@AllArgsConstructor
 public enum ErroEnum {
 
     ARQUIVO_FILME_NAO_ENCONTRADO("ARQUIVO_FILME_NAO_ENCONTRADO", "erro.arquivo-filme-nao-encontrado", HttpStatus.INTERNAL_SERVER_ERROR),
@@ -23,5 +18,27 @@ public enum ErroEnum {
     private final String chaveMensagem;
 
     private final HttpStatus httpStatus;
+
+    ErroEnum(String codigo, String chaveMensagem, HttpStatus httpStatus) {
+
+        this.codigo = codigo;
+        this.chaveMensagem = chaveMensagem;
+        this.httpStatus = httpStatus;
+    }
+
+    public String getCodigo() {
+
+        return this.codigo;
+    }
+
+    public String getChaveMensagem() {
+
+        return this.chaveMensagem;
+    }
+
+    public HttpStatus getHttpStatus() {
+
+        return this.httpStatus;
+    }
 
 }

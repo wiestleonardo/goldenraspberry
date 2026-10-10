@@ -511,4 +511,28 @@ class ProdutorControllerTest {
 
     }
 
+    // Colunas em outra ordem, com iniciais maiúsculas, uma coluna extra (ID) e ";" no fim (coluna sem
+    // nome): cada campo é localizado pelo nome. A tem 1990 e 1995 (5) — o filme de 1991 não venceu;
+    // B tem 2000 e 2001 (1). A linha de 2002 tem mais colunas que o cabeçalho e é descartada — se
+    // fosse aceita, B teria 2001-2002 (1) empatando no mínimo.
+    @Nested
+    @TestPropertySource(properties = PROPRIEDADE_ARQUIVO_FILME + "colunas-outra-ordem.csv")
+    class ArquivoColunasEmOutraOrdem {
+
+        @Autowired
+        private RestTestClient restTestClient;
+
+        @Test
+        void deveLocalizarColunasPeloNomeQuandoCabecalhoTiverOutraOrdemCaixaEColunasExtras() {
+
+            verificarIntervalos(this.restTestClient, """
+                    {
+                      "min": [ { "producer": "Producer B", "interval": 1, "previousWin": 2000, "followingWin": 2001 } ],
+                      "max": [ { "producer": "Producer A", "interval": 5, "previousWin": 1990, "followingWin": 1995 } ]
+                    }
+                    """);
+        }
+
+    }
+
 }

@@ -8,9 +8,546 @@ Fonte: log local do Claude Code (`9fa4d13e-f2b9-40a5-95a5-62c2bdefe786.jsonl`), 
 
 > _comando local do usuário: `/model`_
 
-## 👤 Usuário
+## 👤 Usuário (prompt inicial)
 
-_[prompt inicial — texto integral em `prompt-inicial.md`]_
+# Desenvolvimento do desafio técnico Outsera — Back-end Java
+
+Implemente integralmente o desafio técnico disponível em `D:\outsera`, utilizando Claude Code, GitHub Spec Kit e obrigatoriamente a skill `skill-claude-backend-spring`.
+
+Conduza o desenvolvimento desde a análise dos requisitos até a validação final, seguindo práticas profissionais de engenharia de software, com foco em correção funcional, simplicidade, performance, qualidade e aderência aos padrões definidos no projeto.
+
+Trabalhe de forma autônoma e incremental. Não encerre após criar especificações ou implementar o primeiro endpoint. Continue até concluir todas as etapas viáveis e produzir uma entrega pronta para revisão.
+
+Toda a comunicação, documentação e registros técnicos devem estar em português brasileiro, respeitando as convenções de nomenclatura estabelecidas na skill.
+
+## 1. Fontes obrigatórias
+
+Antes de qualquer implementação, leia integralmente:
+
+- `challenge/Avaliação - Back-end.pdf`
+- `challenge/Movielist.csv`
+- `.claude/skills/skill-claude-backend-spring/SKILL.md`
+
+Consulte os arquivos complementares da skill conforme o contexto:
+
+- `layers-and-naming.md`
+- `code-style.md`
+- `database.md`
+- `testing.md`
+- `solid.md`
+- `stack-and-build.md`
+- `security-and-review.md`
+- `cloud-native.md`
+- `threads-and-virtual-threads.md`
+
+A skill define os padrões obrigatórios para todo código Java e Spring Boot escrito ou revisado neste projeto.
+
+Não utilize padrões genéricos quando houver uma convenção correspondente na skill.
+
+Não suponha a existência de bibliotecas internas, utilitários proprietários ou classes compartilhadas que não estejam disponíveis no projeto.
+
+## 2. Hierarquia de autoridade
+
+Respeite rigorosamente:
+
+1. Requisitos expressos no PDF da Outsera.
+2. Padrões obrigatórios da skill `skill-claude-backend-spring`.
+3. Constitution do GitHub Spec Kit.
+4. Especificação e planejamento técnico produzidos para este projeto.
+
+Em caso de conflito, o requisito explícito do desafio prevalece.
+
+As exceções necessárias aos padrões da skill devem ser documentadas e justificadas.
+
+Não altere a skill para adaptá-la artificialmente ao desafio.
+
+## 3. Processo de desenvolvimento — Spec Kit
+
+Utilize os recursos oficiais do GitHub Spec Kit disponíveis no projeto.
+
+Conduza as seguintes fases:
+
+1. Constitution.
+2. Specify.
+3. Clarify.
+4. Plan.
+5. Tasks.
+6. Analyze.
+7. Implement.
+8. Validação e revisão final.
+
+Utilize os mecanismos efetivamente disponíveis na instalação. Não simule comandos ou execução de skills.
+
+Gere e atualize automaticamente os artefatos do Spec Kit.
+
+Não solicite criação manual de documentos que possam ser produzidos pela ferramenta.
+
+A Constitution deve estabelecer os princípios de engenharia e referenciar a skill como fonte obrigatória dos padrões de implementação.
+
+A especificação deve descrever requisitos funcionais, regras de negócio, contrato da API, critérios de aceitação e casos extremos.
+
+O planejamento deve apresentar decisões técnicas fundamentadas, alternativas consideradas e trade-offs.
+
+As tarefas devem ser incrementais, verificáveis e relacionadas aos requisitos.
+
+Antes de implementar, verifique a consistência entre Constitution, especificação, planejamento e tarefas.
+
+Solicite esclarecimento humano somente quando uma ambiguidade puder alterar o comportamento exigido ou houver uma decisão relevante que não possa ser inferida das fontes disponíveis.
+
+## 4. Princípios de engenharia
+
+Aplique rigorosamente:
+
+- SOLID, conforme a skill.
+- KISS.
+- YAGNI.
+- DRY.
+- Alta coesão.
+- Baixo acoplamento.
+- Responsabilidade única.
+- Código Java idiomático.
+- Separação objetiva de responsabilidades.
+- Determinismo.
+- Performance proporcional ao problema.
+- Tratamento previsível de erros.
+- Reprodutibilidade.
+- Dependências mínimas.
+- Manutenibilidade.
+- Segurança.
+
+Evite overengineering.
+
+Não crie microsserviços, arquitetura hexagonal completa, CQRS, Event Sourcing, mensageria, cache distribuído, estratégias, factories, interfaces ou camadas adicionais sem necessidade concreta.
+
+Aplique as interfaces, implementações e camadas exigidas pela skill quando forem pertinentes à responsabilidade implementada.
+
+Não transforme o projeto em uma arquitetura corporativa artificial.
+
+## 5. Stack tecnológica
+
+Utilize:
+
+- Java 21, disponível no ambiente.
+- Spring Boot 4.x estável e compatível.
+- Spring MVC.
+- Maven com Maven Wrapper.
+- H2 embarcado em memória.
+- JUnit 5.
+- Infraestrutura de testes de integração compatível com Spring Boot 4.
+- Docker.
+- GitHub Actions.
+
+Defina a estratégia de persistência conforme `database.md`, considerando simplicidade, legibilidade e necessidade real.
+
+Avalie Spring Data JPA e `JdbcClient` de acordo com os critérios da skill.
+
+Utilize bibliotecas consolidadas para parsing de CSV, quando necessário.
+
+Não introduza dependências externas de infraestrutura.
+
+Não utilize Java 25 sem verificar sua disponibilidade e obter autorização para modificar a versão Java do projeto.
+
+Verifique a compatibilidade das dependências e propriedades com a versão efetiva do Spring Boot.
+
+## 6. Requisitos funcionais
+
+Implemente a API RESTful definida no PDF.
+
+A aplicação deve:
+
+1. Ler o CSV durante a inicialização.
+2. Persistir os filmes em H2 em memória.
+3. Identificar os filmes vencedores.
+4. Identificar corretamente os produtores individuais.
+5. Calcular intervalos entre premiações consecutivas do mesmo produtor.
+6. Identificar os menores intervalos.
+7. Identificar os maiores intervalos.
+8. Preservar todos os resultados empatados.
+9. Retornar exatamente o contrato JSON especificado.
+10. Funcionar com datasets diferentes do original.
+
+Siga o nível 2 do modelo de maturidade de Richardson.
+
+Não adicione endpoints sem necessidade.
+
+A API deve retornar os campos:
+
+- `min`
+- `max`
+- `producer`
+- `interval`
+- `previousWin`
+- `followingWin`
+
+Preserve exatamente a estrutura exigida pelo PDF.
+
+Não utilize resultados fixos ou regras especiais para os produtores presentes no dataset original.
+
+Permita substituir o arquivo CSV por configuração sem alterar o código-fonte.
+
+Mantenha o CSV original como dataset padrão.
+
+## 7. Regras críticas do algoritmo
+
+Analise e valide especialmente:
+
+- Produtores separados por vírgulas.
+- Produtores separados por `and`.
+- Combinações de separadores.
+- Campos CSV com aspas.
+- Espaços excedentes.
+- Filmes com múltiplos produtores.
+- Produtores vencedores uma única vez.
+- Produtores com três ou mais vitórias.
+- Intervalos de vitórias consecutivas.
+- Intervalos mínimos empatados.
+- Intervalos máximos empatados.
+- Múltiplos intervalos empatados do mesmo produtor.
+- Vitórias em anos repetidos.
+- Registros fora de ordem.
+- Filmes não vencedores.
+- Ausência de intervalos válidos.
+- Datasets não conhecidos previamente.
+
+Determine explicitamente o comportamento das ambiguidades do enunciado.
+
+Não calcule intervalos arbitrários entre qualquer combinação de anos.
+
+Ordene os resultados de maneira determinística.
+
+Não introduza processamento paralelo ou cache sem evidência real de necessidade.
+
+## 8. Persistência e importação
+
+A persistência deve funcionar integralmente em memória, sem instalação externa.
+
+A importação deve ocorrer no startup e não a cada requisição.
+
+Implemente:
+
+- Leitura correta do CSV.
+- Validação dos dados necessários.
+- Identificação dos vencedores.
+- Persistência consistente.
+- Tratamento previsível de erros de importação.
+- Substituição do CSV por configuração.
+- Consultas eficientes para a regra de negócio.
+
+Evite consultas N+1.
+
+Evite acesso repetitivo ao banco dentro de loops quando uma consulta puder fornecer os dados necessários.
+
+Não descarte silenciosamente linhas inválidas.
+
+Evite modelagem e índices desnecessários para o problema.
+
+## 9. Performance
+
+Priorize correção e eficiência.
+
+Considere:
+
+- Complexidade algorítmica.
+- Utilização adequada de coleções.
+- Consultas SQL eficientes.
+- Ordenação de premiações.
+- Percurso linear dos intervalos consecutivos.
+- Uso proporcional de memória.
+- Ausência de processamento redundante.
+
+Procure manter uma complexidade compatível com agrupamento e ordenação, aproximadamente O(N + W log W), quando aplicável à modelagem escolhida.
+
+Não otimize prematuramente.
+
+Documente resumidamente a complexidade efetiva do algoritmo e os trade-offs relevantes.
+
+## 10. Testes exclusivamente de integração
+
+O PDF determina a implementação somente de testes de integração.
+
+Não crie testes unitários.
+
+Os testes devem exercitar efetivamente:
+
+- Inicialização Spring.
+- Importação do CSV.
+- Persistência H2.
+- Regras de negócio.
+- Endpoint HTTP real.
+- Contrato JSON.
+
+Crie datasets alternativos independentes que cubram:
+
+1. Resultado do CSV original.
+2. Vitórias consecutivas.
+3. Três ou mais vitórias do mesmo produtor.
+4. Empates mínimos.
+5. Empates máximos.
+6. Múltiplos empates do mesmo produtor.
+7. Múltiplos produtores por filme.
+8. Separadores mistos de nomes.
+9. Filmes não vencedores.
+10. Anos repetidos.
+11. Ausência de intervalos.
+12. Dados em ordem aleatória.
+13. Substituição do dataset.
+14. Contrato HTTP e JSON.
+
+Os resultados esperados dos testes devem ser definidos independentemente do algoritmo da aplicação.
+
+Os testes devem ser isolados e reproduzíveis.
+
+Respeite a nomenclatura e o estilo de testes da skill.
+
+Execute o build completo e corrija falhas antes de considerar a implementação concluída.
+
+## 11. Docker
+
+Implemente:
+
+- Dockerfile multi-stage.
+- `.dockerignore`.
+- Build reproduzível.
+- Runtime Java 21.
+- Execução sem banco externo.
+- Configuração apropriada de porta.
+- Usuário não root, quando viável.
+
+Valide efetivamente:
+
+1. Construção da imagem.
+2. Inicialização do container.
+3. Disponibilidade da API.
+4. Resposta JSON.
+5. Encerramento do container.
+
+Não declare que o Docker funciona sem executar as verificações.
+
+## 12. GitHub Actions
+
+Configure uma pipeline simples que:
+
+- Utilize Java 21.
+- Execute Maven Wrapper.
+- Compile a aplicação.
+- Execute os testes de integração.
+- Falhe quando houver erros.
+
+Não implemente deploy.
+
+Não adicione ferramentas desnecessárias.
+
+## 13. Qualidade e conformidade com a skill
+
+A cada incremento relevante, revise o código contra a skill.
+
+Valide:
+
+- Organização dos packages.
+- Responsabilidades das camadas.
+- Nomenclatura.
+- Interfaces e implementações.
+- Injeção por construtor.
+- Campos `final`.
+- Convenção obrigatória de `this.`.
+- Organização de métodos e atributos.
+- Linhas em branco.
+- SQL e persistência.
+- Transações.
+- DTOs.
+- Tratamento de erros.
+- Logs.
+- Testes.
+- SOLID.
+- Segurança.
+
+Não introduza dependências, abstrações ou padrões desnecessários.
+
+Na revisão final, produza uma verificação explícita de conformidade com a skill.
+
+Documente apenas desvios reais e justificados.
+
+## 14. Registro das interações com IA
+
+O desafio exige o registro de interações com o agente.
+
+Crie a organização:
+
+`docs/ai/`
+
+Registre objetivamente:
+
+- Ferramentas utilizadas.
+- Skills utilizadas.
+- Principais prompts reais.
+- Histórico de sessões, quando disponível.
+- Decisões técnicas.
+- Alternativas analisadas.
+- Revisões relevantes.
+- Problemas encontrados.
+- Correções realizadas.
+- Resultados das validações.
+
+Não invente conversas, prompts ou resultados.
+
+Não apresente resumos como transcrições originais.
+
+Utilize exportações autênticas das sessões quando possível.
+
+Não inclua credenciais ou dados sensíveis.
+
+O README deve conter um link para essas evidências.
+
+## 15. Disponibilização da skill
+
+A skill está localizada em:
+
+`.claude/skills/skill-claude-backend-spring/`
+
+Ela é parte obrigatória da entrega.
+
+Mantenha todos os documentos relevantes versionados no repositório.
+
+Não inclua o `.git` do repositório original da skill.
+
+Não altere o conteúdo original da skill.
+
+Inclua no README uma seção sobre os padrões de engenharia adotados, com link para o arquivo `SKILL.md`.
+
+A Constitution também deve referenciar essa skill.
+
+## 16. Documentação
+
+Crie README em português brasileiro, contendo:
+
+- Objetivo do projeto.
+- Stack tecnológica.
+- Pré-requisitos.
+- Como executar localmente.
+- Como executar os testes.
+- Como executar com Docker.
+- Endpoint disponível.
+- Exemplo de JSON.
+- Como substituir o CSV.
+- Arquitetura resumida.
+- Decisões técnicas relevantes.
+- Padrões aplicados.
+- Link para a skill.
+- Evidências de utilização da IA.
+
+As instruções devem corresponder ao funcionamento real da aplicação.
+
+Não faça afirmações de sucesso sem validação.
+
+## 17. Git e organização
+
+Configure `.gitignore` para Java, Maven, IDEs e arquivos temporários.
+
+Preserve:
+
+- Código-fonte.
+- Testes de integração.
+- CSV padrão.
+- Documentação.
+- Skill.
+- Artefatos relevantes do Spec Kit.
+- Evidências de utilização da IA.
+- Pipeline GitHub Actions.
+- Maven Wrapper.
+- Dockerfile.
+
+Não inclua arquivos temporários, artefatos de build ou credenciais.
+
+Organize commits de maneira incremental e coerente.
+
+Não publique automaticamente no GitHub sem autorização explícita.
+
+## 18. Revisão técnica final
+
+Ao concluir a implementação, realize uma revisão de código rigorosa.
+
+Verifique:
+
+- Aderência integral ao PDF.
+- Precisão dos cálculos.
+- Compatibilidade com datasets desconhecidos.
+- Separação correta dos produtores.
+- Tratamento de empates.
+- Contrato JSON.
+- Nível REST exigido.
+- Persistência em memória.
+- Performance.
+- SQL.
+- Transações.
+- SOLID.
+- Simplicidade.
+- Conformidade com a skill.
+- Qualidade dos testes.
+- Docker.
+- CI.
+- README.
+- Evidências de IA.
+
+Classifique problemas por severidade.
+
+Corrija defeitos reais e execute novamente as validações afetadas.
+
+Não reescreva código funcional apenas por preferência estética.
+
+## 19. Critérios de conclusão
+
+Considere a tarefa concluída somente quando:
+
+- Os requisitos do PDF estiverem atendidos.
+- A aplicação compilar.
+- Todos os testes de integração passarem.
+- A API retornar o JSON esperado.
+- Datasets alternativos estiverem validados.
+- O banco H2 funcionar em memória.
+- A aplicação iniciar localmente.
+- O Docker construir e executar.
+- O endpoint funcionar dentro do container.
+- A pipeline de CI estiver configurada.
+- O README estiver completo.
+- A skill estiver incluída.
+- As interações reais com IA estiverem documentadas.
+- A revisão técnica final estiver concluída.
+
+Caso alguma validação não possa ser executada, sinalize claramente a pendência.
+
+## 20. Execução
+
+Trabalhe autonomamente em etapas incrementais.
+
+Não pare após o planejamento.
+
+Não pare após gerar o código inicial.
+
+Não pare após os primeiros testes passarem.
+
+Continue até concluir todas as etapas viáveis.
+
+Evite pedir confirmação para decisões técnicas rotineiras, mas solicite esclarecimentos para ambiguidades de negócio relevantes ou ações externas e destrutivas.
+
+Não simule comandos do Spec Kit.
+
+Não declare testes executados sem evidência.
+
+Não altere requisitos para facilitar a implementação.
+
+Ao final, apresente um relatório resumido com:
+
+1. Funcionalidades implementadas.
+2. Arquitetura utilizada.
+3. Conformidade com a skill.
+4. Testes executados e resultados.
+5. Resultado da validação Docker.
+6. Estado da CI.
+7. Localização das evidências de IA.
+8. Pendências e riscos.
+9. Situação de preparação para entrega.
+
+**Inicie agora lendo os arquivos originais, verificando o ambiente e a skill, estabelecendo a Constitution e conduzindo o fluxo oficial do Spec Kit até a validação final.**
 
 ## 🤖 Claude
 
@@ -505,55 +1042,6 @@ Varro o código atrás de acessos a membro sem `this.` (regra da skill) e de res
 
 - 🔧 `Bash` — Export sanitized session log to docs/ai and check leaks
 
-## 👤 Usuário (resposta ao clarify — pergunta="resposta")
-
-540 docs/ai/prompt-inicial.md
-  504 docs/ai/sessao-claude-code.md
- 1044 total
-# Prompt inicial (texto integral enviado pelo usuário)
-
-# Desenvolvimento do desafio técnico Outsera — Back-end Java
-
-Implemente integralmente o desafio técnico disponível em `D:\outsera`, utilizando Claude Code, GitHub Spec Kit e obrigatoriamente a skill `skill-claude-backend-spring`.
-
-Conduza o desenvolvimento desde a análise dos requisitos até a validação final, seguindo práticas profissionais de engenharia de software, com foco em correção funcional, simplicidade, performance, qualidade e aderência aos padrões definidos no projeto.
-
-Trabalhe de forma autônoma e incremental. Não encerre após criar especificações ou implementar o primeiro endpoint. Continue até concluir todas as etapas viáveis e produzir uma entrega pronta para revisão.
-
-Toda a comunicação, documentação e registros técnicos devem estar em português brasileiro, respeitando as convenções de nomenclatura estabelecidas na skill.
-
-## 1. Fontes obrigatórias
-
-Antes de qualquer implementação, leia integralmente:
-
-- `challenge/Avaliação - Back-end.pdf`
-- `challenge/Movielist.csv`
-- `.claude/skills/skill-claude-backend-spring/SKILL.md`
-
-Consulte os arquivos complementares da skill conforme o contexto:
-
-- `layers-and-naming.md`
-- `code-style.md`
-- `database.md`
-- `testing.md`
-- `solid.md`
-- `stack-and-build.md`
-- `security-and-review.md`
-- `cloud-native.md`
-- `threads-and-virtual-threads.md`
-
-A skill define os padrões obrigatórios para todo código Java e Spring Boot escrito ou re
-docs/ai/prompt-inicial.md:0
-docs/ai/sessao-claude-code.md:0
-91:## 👤 Usuário (resposta ao clarify)
-92-
-93-"Quando o mesmo produtor vence com dois filmes diferentes no mesmo ano, isso conta como dois prêmios com intervalo 0?"="Sim, intervalo 0 (Recommended)".
-94-
---
-97:## 👤 Usuário (resposta ao clarify)
-98-
-99-"Se o CSV tiver uma linha inválida (ano não numérico, colunas a mais/menos, produtores vazios, winner diferente de 'yes'/vazio), a aplicação deve deixar de iniciar?"="Adotar tratamento proporcional ao erro, priorizando os requisitos do PDF e evitando complexidade desnecessária.Linhas válidas devem ser importadas normalmente. O campo `winner` vazio representa filme não vencedor, conforme o CSV fornecido.Para linhas individualmente inválidas, como ano não numérico ou produtor ausente, registrar WARN com número da linha e motivo, descartar apenas a linha e continuar a importação.Para problemas estruturais que impossibilitem a interpretação confiável do arquivo, como arquivo inexistente ou cabeçalho incompatível, falhar a inicialização.Não criar tabela de registros inválidos, mecanismo de reprocessamento ou funcionalidades adicionais não exigidas pelo desafio.Documentar essa política como premissa, pois o PDF não especifica tratamento de dados inválidos. Incluir testes de integração para os cenários relevantes.".
-
 - 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
 
 ## 🤖 Claude
@@ -999,3 +1487,697 @@ Atualizo o exportador para que os pedidos colados depois do primeiro apareçam n
 - 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
 
 - 🔧 `Bash` — Regenerate session export and verify integrity
+
+- 🔧 `Bash` — Final conformity and git content checks
+
+- 🔧 `Bash` — Commit documentation updates
+
+## 🤖 Claude
+
+As correções de R1, O1, O3, O5, O7, O9 e R2 estão aplicadas e validadas. O projeto está **pronto para publicação**; falta só o merge e o push, que eu não fiz.
+
+## Correções
+
+| Item | O que mudou |
+|---|---|
+| **R1 — aspas malformadas** | Antes de mexer, testei a biblioteca com o classpath do projeto. O parser padrão aborta o arquivo inteiro. `setTrailingData(true)` grava `Crocodile Dundee II` sem as aspas, sem aviso. `setLenientEof(true)` junta as linhas seguintes num único campo. Rejeitei as duas opções. Agora o CSV é lido linha a linha, com um parser por linha: a linha malformada é descartada com WARN, as demais seguem e nenhum dado é alterado. Contrapartida: um campo entre aspas com quebra de linha dentro não é suportado e vira linha descartada; o CSV do desafio não usa isso. |
+| **O1 — `and`** | O separador agora é a palavra inteira, em qualquer caixa (`and`, `And`, `AND`). Os nomes continuam comparados exatamente: `producer a` ≠ `Producer A`, e "Anderson" não é quebrado. |
+| **O3 — duplicatas** | Uma linha idêntica a outra já lida (depois de tirar espaços das pontas e ignorar a caixa do `winner`) é descartada com WARN citando a linha original. Dois filmes distintos do mesmo produtor no mesmo ano continuam gerando intervalo 0; os dois casos têm teste. |
+| **O5 — configuração** | Removi `spring.sql.init.mode`, que é o default. `server.shutdown` e `server.error.include-*` também são defaults, mas a skill os exige; ficaram, com justificativa. As chaves de mensagem `erro.arquivo-filme-*` ficaram porque o `ErroEnum` da skill exige uma por erro. |
+| **O7 — Actuator** | Removido: nada no desafio usava o health check. O desvio em relação à skill está registrado no `research.md` (R9), e a validação do container agora usa o próprio endpoint da API. |
+| **O9 — Docker** | Imagens base fixadas por versão e digest (`eclipse-temurin:21.0.12.1_1-{jdk,jre}-noble@sha256:…`). |
+| **R2 — evidências de IA** | Exportação regenerada a partir do log real da sessão, com os três pedidos (inicial, auditoria e correção) na íntegra. O `prompt-inicial.md` foi conferido por script e é idêntico ao original; não há e-mail nem usuário no texto. |
+
+## Testes e validações executados
+
+- **Build no Windows:** `mvnw.cmd clean verify` deu 27 testes, 0 falhas, `BUILD SUCCESS`. Os 4 testes novos cobrem aspas malformadas, `AND` em maiúsculas, duplicatas e os avisos no log.
+- **Simulação da CI:** o mesmo `./mvnw -B verify`, rodado a partir do commit num container Linux limpo, também deu 27 testes verdes.
+- **CSVs de borda da auditoria**, rodados de novo contra o jar novo:
+  - título com aspas: só a linha é descartada;
+  - `AND`: os produtores são separados;
+  - linha duplicada: não gera mais intervalo 0;
+  - cabeçalho em maiúsculas: continua impedindo a subida, que é o comportamento definido no clarify.
+- **Docker com o CSV padrão:** a build usou as imagens fixadas, o container roda como usuário não root (uid 999) e o endpoint devolve `200` com o JSON esperado. `/actuator/health` responde 404, como esperado.
+- **Docker com outro CSV:** via volume e `FILME_ARQUIVO_CSV`, o resultado é o do dataset, com os avisos das linhas 2 e 4. O encerramento continua gracioso.
+- **Revisão de código e git:** a conformidade com a skill foi revisada de novo no código alterado. No git só entra o que deve; `target/`, `.specify/feature.json` e a cópia da skill na raiz estão ignorados.
+
+A documentação (README, `docs/revisao-tecnica.md` com as três passadas, `docs/ai/` e os artefatos da spec, incluindo as tarefas T037–T045) foi atualizada. Tudo está em 3 commits novos na branch `001-intervalo-premios-produtores`, com a árvore de trabalho limpa.
+
+## O que continua em aberto
+
+- **Por decisão:**
+  - cabeçalho com caixa diferente impede a subida (definido no clarify);
+  - arquivo que não esteja em UTF-8 fica com acentos trocados (o formato está documentado);
+  - o aviso de self-attach do Mockito no build continua, e é inofensivo.
+- **Não verificado:** a pipeline nunca rodou no GitHub, porque o repositório ainda não foi publicado.
+- **Registro de IA:** a exportação foi gerada antes deste relatório, então ele não está nela. Para incluí-lo, basta rodar `docs/ai/exportar_sessao.py` de novo antes do push.
+- **Publicação:** a `main` tem só o commit inicial e não há remote configurado. O merge na `main` é direto, sem conflito.
+
+Quando quiser publicar, me passe a URL do repositório no GitHub.
+
+## 👤 Usuário
+
+Vamos finalizar exclusivamente a parte técnica do projeto Outsera.
+
+A gestão do Git será realizada manualmente por mim. Portanto, não execute comandos de Git que modifiquem o repositório, não crie commits, não faça merge, push, checkout ou alterações em branches.
+
+Não precisamos realizar publicação nem validar o GitHub Actions neste momento. Mantenha apenas o arquivo de configuração da CI corretamente preparado.
+
+**Objetivo: concluir a validação técnica da aplicação, sem alterar desnecessariamente o que já funciona.**
+
+Execute as seguintes atividades:
+
+1. Confirme a aderência integral aos requisitos do PDF da Outsera, incluindo importação CSV, H2 em memória, contrato REST e cálculo dos intervalos de premiações.
+
+2. Execute novamente o build completo com `mvnw.cmd clean verify` e confirme os resultados dos 27 testes de integração.
+
+3. Verifique a correção dos cenários críticos: múltiplos produtores, vitórias consecutivas, empates, anos repetidos, datasets alternativos e registros inválidos.
+
+4. Revise o código conforme a skill obrigatória `.claude/skills/skill-claude-backend-spring/SKILL.md` e seus documentos complementares. Confirme os padrões de arquitetura, nomenclatura, SOLID, estilo, SQL e testes.
+
+5. Revise a performance do algoritmo e das consultas, identificando somente problemas concretos. Não adicione cache, paralelismo, abstrações ou
+
+## 🤖 Claude
+
+O texto colado chegou cortado no item 5 ("Não adicione cache, paralelismo, abstrações ou…"). Executo os itens 1 a 5 com a restrição que já está clara: nada de git e nenhuma alteração desnecessária. No final peço o restante das instruções.
+
+- 🔧 `PowerShell` — Run full clean verify build
+
+## 👤 Usuário (mensagem enviada durante a execução)
+
+Vamos finalizar exclusivamente a parte técnica do projeto Outsera.
+
+A gestão do Git será realizada manualmente por mim. Portanto, não execute comandos de Git que modifiquem o repositório, não crie commits, não faça merge, push, checkout ou alterações em branches.
+
+Não precisamos realizar publicação nem validar o GitHub Actions neste momento. Mantenha apenas o arquivo de configuração da CI corretamente preparado.
+
+**Objetivo: concluir a validação técnica da aplicação, sem alterar desnecessariamente o que já funciona.**
+
+Execute as seguintes atividades:
+
+1. Confirme a aderência integral aos requisitos do PDF da Outsera, incluindo importação CSV, H2 em memória, contrato REST e cálculo dos intervalos de premiações.
+
+2. Execute novamente o build completo com `mvnw.cmd clean verify` e confirme os resultados dos 27 testes de integração.
+
+3. Verifique a correção dos cenários críticos: múltiplos produtores, vitórias consecutivas, empates, anos repetidos, datasets alternativos e registros inválidos.
+
+4. Revise o código conforme a skill obrigatória `.claude/skills/skill-claude-backend-spring/SKILL.md` e seus documentos complementares. Confirme os padrões de arquitetura, nomenclatura, SOLID, estilo, SQL e testes.
+
+5. Revise a performance do algoritmo e das consultas, identificando somente problemas concretos. Não adicione cache, paralelismo, abstrações ou otimizações especulativas.
+
+6. Valide a execução local e com Docker, incluindo inicialização, resposta HTTP e substituição do CSV por configuração.
+
+7. Revise o README, garantindo instruções reproduzíveis para execução, testes e Docker, além de explicações objetivas das decisões técnicas e premissas do desafio.
+
+8. Atualize as evidências reais de uso de IA em `docs/ai/`, incluindo as últimas etapas relevantes. Não invente interações nem apresente resumos como transcrições originais.
+
+9. Remova apenas configurações, arquivos ou dependências comprovadamente desnecessários. Não realize refatorações cosméticas ou mudanças arquiteturais sem justificativa.
+
+10. Confirme que a skill completa, os artefatos relevantes do Spec Kit, o código, os testes e a documentação estão preparados para entrega.
+
+**Restrições:**
+
+- Não executar operações de Git que modifiquem o repositório.
+- Não publicar nada.
+- Não alterar requisitos ou decisões de negócio já aprovadas.
+- Não adicionar funcionalidades não solicitadas.
+- Não criar complexidade desnecessária.
+- Não modificar a skill original.
+- Não afirmar sucesso sem executar as verificações correspondentes.
+
+Ao finalizar, apresente um relatório técnico objetivo contendo:
+
+- Requisitos atendidos.
+- Resultado dos testes.
+- Resultado do Docker.
+- Conformidade com a skill.
+- Avaliação de performance.
+- Estado da documentação e dos registros de IA.
+- Problemas técnicos pendentes, se existirem.
+
+**Concentre-se exclusivamente na aplicação e na qualidade da entrega. A gestão do Git é minha responsabilidade.**
+
+## 🤖 Claude
+
+A mensagem completa chegou. O item 2 já está confirmado: `mvnw.cmd clean verify` deu 27 testes, 0 falhas, `BUILD SUCCESS`. Sigo para o item 9, procurando membros sem uso no código:
+
+- 🔧 `Bash` — Count usages of util methods, constants and message keys
+
+## 🤖 Claude
+
+Achei dois itens sem uso: `StringUtil.STRING_VAZIA` (só a declaração) e, ao que parece, `listaParametro` em `BusinessServiceException`. Confirmo o segundo:
+
+- 🔧 `Bash` — Confirm unused members before removal
+
+## 🤖 Claude
+
+Os dois nunca são lidos: os parâmetros já vão na mensagem da exceção. Removo apenas esses membros.
+
+- 🔧 `Read` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\exception\BusinessServiceException.java
+
+- 🔧 `Read` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\util\StringUtil.java
+
+- 🔧 `Edit` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\exception\BusinessServiceException.java
+
+- 🔧 `Edit` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\exception\BusinessServiceException.java
+
+- 🔧 `Edit` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\util\StringUtil.java
+
+## 🤖 Claude
+
+Agora a revisão de estilo da skill no código-fonte. Uma varredura heurística da regra "primeira linha de bloco em branco" (métodos, `if`, `for`, `try`, `catch`):
+
+- 🔧 `Bash` — Scan for blocks missing the leading blank line
+
+- 🔧 `Bash` — Rebuild jar and generate large synthetic CSV
+
+- 🔧 `Bash` — Measure import and query time on large dataset
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\oraculo.py
+
+- 🔧 `Bash` — Compare API output against independent oracle
+
+## 🤖 Claude
+
+A API bateu com o oráculo independente em todos os arquivos, inclusive no grande, onde o mínimo tem **1.177 empates**. Como removi dois membros do código, rodo o build completo de novo:
+
+- 🔧 `PowerShell` — Rerun clean verify after dead-code removal
+
+## 🤖 Claude
+
+Continua verde: 27/27. Agora a validação local pela variável de ambiente e a validação Docker completa (item 6):
+
+- 🔧 `Bash` — Validate local env-var run and full Docker flow
+
+- 🔧 `Read` — D:\outsera\README.md
+
+- 🔧 `Edit` — D:\outsera\README.md
+
+- 🔧 `Edit` — D:\outsera\README.md
+
+- 🔧 `Edit` — D:\outsera\README.md
+
+- 🔧 `Edit` — D:\outsera\README.md
+
+## 🤖 Claude
+
+Atualizo a revisão técnica, o `tasks.md` e o índice de IA com esta passada de validação:
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\atualizar_passada4.py
+
+- 🔧 `Bash` — Apply final validation updates to docs
+
+## 🤖 Claude
+
+Item 10: confiro os entregáveis só com comandos de leitura (nenhuma operação de git que modifique o repositório):
+
+- 🔧 `Bash` — Read-only check of deliverables and git status
+
+## 🤖 Claude
+
+Tudo no lugar. Por último, regenero a exportação da sessão a partir do log real, que agora inclui os pedidos de hoje, e confiro integridade e sanitização:
+
+- 🔧 `Bash` — Regenerate session export and verify sanitization
+
+- 🔧 `Bash` — Check whether the full final request is in the export
+
+- 🔧 `Bash` — Locate record type of the mid-turn user message
+
+## 🤖 Claude
+
+A mensagem fica num registro `attachment` do tipo `queued_command`. Acrescento esse caso ao exportador, com rótulo próprio para deixar claro que ela chegou durante a execução:
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Bash` — Regenerate export including mid-turn message
+
+## 🤖 Claude
+
+A mensagem completa entrou. Há um quarto bloco "resposta ao clarify" na linha 508, mas o clarify teve só três perguntas. Investigo:
+
+- 🔧 `Bash` — Inspect the unexpected clarify block
+
+- 🔧 `Read` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Bash` — Regenerate export with corrected clarify detection
+
+## 🤖 Claude
+
+O registro está correto agora: 3 respostas do clarify, os 4 pedidos colados e a mensagem completa enviada durante a execução. Anoto essas duas correções do exportador no índice de evidências:
+
+- 🔧 `Edit` — D:\outsera\docs\ai\README.md
+
+- 🔧 `Bash` — Final export regeneration and leftover checks
+
+## 🤖 Claude
+
+A validação técnica está concluída e a aplicação está pronta para entrega. Não encontrei nenhum problema técnico pendente. As alterações desta etapa estão na árvore de trabalho, sem commit; não executei nenhum comando de git que modifique o repositório.
+
+## Requisitos do PDF
+
+| Requisito | Situação |
+|---|---|
+| Ler o CSV na inicialização e gravar no banco | Atendido: importação concluída antes de o servidor HTTP abrir ("206 filmes gravados" antes de "Tomcat started") |
+| Banco em memória, sem instalação | Atendido: H2 em memória, um banco isolado por contexto |
+| API REST nível 2 de Richardson | Atendido: `GET /api/produtores/intervalosPremios`, respostas 200, 404 e 405, JSON |
+| Maior intervalo e dois prêmios mais rápido, formato da pág. 2 | Atendido: `min`/`max` com `producer`, `interval`, `previousWin`, `followingWin`, todos os empates e ordem fixa |
+| Somente testes de integração, de acordo com os dados da proposta | Atendido: 27 testes, nenhum unitário; o CSV original é comparado com o JSON exato |
+| README com execução e testes | Atendido e revisado |
+
+## Testes
+
+- **Build:** `mvnw.cmd clean verify` deu 27 testes, 0 falhas, `BUILD SUCCESS`, antes e depois das remoções desta etapa.
+- **Cenários críticos:** cada um tem teste próprio com o resultado calculado à mão:
+  - múltiplos produtores, separadores mistos e `AND` em qualquer caixa;
+  - vitórias consecutivas e três ou mais vitórias;
+  - empates no mínimo, no máximo e do mesmo produtor;
+  - anos repetidos com intervalo 0;
+  - duplicatas e filmes distintos no mesmo ano;
+  - ordem aleatória, CRLF com BOM, aspas malformadas e linhas inválidas.
+- **Cálculo independente:** escrevi um script Python a partir das regras, sem reaproveitar o código Java, e comparei com a resposta da API. Deu idêntico com o CSV original, com três datasets de teste e com um CSV sintético de 20.000 filmes (1.177 empates no mínimo).
+
+## Docker e execução local
+
+- **Imagem:** a build usou as imagens fixadas (`21.0.12.1_1` com digest).
+- **CSV padrão:** responde 200 com o JSON esperado, roda como usuário não root, e responde 404 para rota inexistente e 405 para `POST`.
+- **Outro CSV:** por volume com `FILME_ARQUIVO_CSV`, devolve o resultado do dataset informado.
+- **Arquivo inexistente:** o container encerra com exit 1 e o erro `ARQUIVO_FILME_NAO_ENCONTRADO`.
+- **Local:** `java -jar` com `FILME_ARQUIVO_CSV` também funcionou.
+- **Limpeza:** não ficou nenhum container nem processo Java rodando.
+
+## Conformidade com a skill
+
+Revisei o código de novo: camadas e direção de injeção, interface + `Impl`, injeção por construtor com `final`, `this.`, linhas em branco, constantes, Utils, SQL, transação, logs, tratamento de erros e nomes dos testes. Nada fora do padrão. Os desvios intencionais (sem Liquibase, springdoc, MapStruct, Security e Actuator; Job sem `@Scheduled`) continuam justificados no `research.md` (R9).
+
+## Performance
+
+Não há problema concreto.
+- **Com o CSV original:** cada consulta leva cerca de 11 ms.
+- **Com 20.000 filmes:** leitura em 0,4 s, gravação em 4 s (uma vez, no startup) e consulta entre 25 e 90 ms.
+- **Origem do maior custo:** a gravação, porque a skill exige uma chamada de sequence por registro. Num dataset do tamanho do desafio são cerca de 70 ms, então não mexi.
+
+## O que mudou nesta etapa
+
+- **Código sem uso:** removi `StringUtil.STRING_VAZIA` e o campo `listaParametro` de `BusinessServiceException`, que nunca eram lidos.
+- **README:** os números de desempenho medidos, a regra de cabeçalho comparado exatamente e a origem das decisões sobre dados inválidos.
+- **Revisão técnica:** `docs/revisao-tecnica.md` ganhou a seção desta validação (passada 4).
+- **Tarefas:** `tasks.md` ganhou a T046.
+- **Registros de IA:** `docs/ai/` foi regenerado a partir do log real, com os quatro pedidos colados, as três respostas do clarify e a mensagem completa que você enviou durante a execução.
+- **Exportador:** corrigi o `docs/ai/exportar_sessao.py`, que classificava a saída de um `grep` como resposta do clarify e não captava mensagens enviadas durante a execução.
+
+Seu último pedido chegou primeiro cortado no item 5; a versão completa veio durante a execução e foi a que segui.
+
+## Pendências
+
+Nenhuma técnica. A exportação da sessão foi gerada antes deste relatório; se quiser incluí-lo, rode `docs/ai/exportar_sessao.py` de novo antes do seu commit. O CI ficou como estava (Java 21 e `./mvnw -B verify`, com o `mvnw` executável) e não foi executado, conforme combinado.
+
+Arquivos alterados nesta etapa:
+- `README.md`
+- `docs/revisao-tecnica.md`
+- `docs/ai/README.md`
+- `docs/ai/exportar_sessao.py`
+- `docs/ai/sessao-claude-code.md`
+- `specs/001-intervalo-premios-produtores/tasks.md`
+- `src/main/java/br/com/outsera/goldenraspberry/exception/BusinessServiceException.java`
+- `src/main/java/br/com/outsera/goldenraspberry/util/StringUtil.java`
+
+## 👤 Usuário
+
+Realize uma revisão crítica da complexidade estrutural da aplicação Outsera.
+
+Atualmente o projeto possui aproximadamente 33 arquivos Java de produção para um desafio com um endpoint REST, importação CSV, persistência H2 e cálculo de intervalos.
+
+Quero avaliar se houve aplicação excessivamente literal dos padrões da skill `skill-claude-backend-spring`, gerando interfaces, implementações, camadas, utilitários ou classes sem necessidade concreta.
+
+Analise cada classe e sua responsabilidade real.
+
+Identifique:
+
+1. Interfaces com uma única implementação que não ofereçam benefício efetivo.
+2. Classes que apenas delegam chamadas.
+3. Utilitários triviais criados sem reutilização ou ganho de legibilidade.
+4. Camadas que poderiam ser eliminadas sem misturar responsabilidades.
+5. Estruturas de exceções e constantes desproporcionais ao projeto.
+6. Possíveis violações de KISS e YAGNI.
+7. Simplificações que contrariariam uma regra realmente obrigatória da skill.
+
+Para cada proposta, apresente a classe atual, o motivo de existir, o benefício de eliminá-la ou mantê-la e o impacto nos testes.
+
+Não altere nenhum arquivo ainda.
+
+Não utilize quantidade de classes ou linhas como meta de qualidade. O objetivo é eliminar complexidade sem perder clareza, correção, desempenho ou aderência à skill.
+
+Ao final, apresente uma proposta conservadora de simplificação, separando mudanças recomendadas de mudanças meramente estéticas.
+
+Não execute comandos de Git. Aguarde minha aprovação antes de refatorar.
+
+## 🤖 Claude
+
+Começo listando os arquivos de produção e o tamanho de cada um, sem alterar nada.
+
+- 🔧 `Bash` — List production Java files with non-blank line counts
+
+- 🔧 `Bash` — Map usage of constants, utils, enum and VO across code
+
+## 🤖 Claude
+
+# Revisão da complexidade estrutural
+
+A estrutura atual é, quase toda, o mínimo que a skill exige. Encontrei **uma** simplificação recomendada (que, aliás, *aumenta* a aderência à skill), duas que são opcionais e um conjunto de remoções que parecem atraentes mas contrariam regras obrigatórias. Não alterei nenhum arquivo e não executei comandos de git.
+
+## De onde vêm os 33 arquivos
+
+| Grupo | Arquivos | Por que existe |
+|---|---|---|
+| Pares interface + `Impl` (Controller, 2 Services, Facade, ServiceTransactional, 2 ServiceApplication) | 14 | Regra explícita da skill: "Toda camada é par interface + `Impl`" |
+| Dados: DTOs (3), entidades (2), Projection, VO | 7 | Contrato JSON, modelo JPA, retorno da consulta e transporte da leitura para a gravação |
+| Apoio: Job, Repository, handler de erros, `ErroEnum`, exceção, aplicação | 6 | Ponto de entrada, acesso a dados e tratamento de erros exigidos pela skill |
+| Constantes (3) e Utils (3) | 6 | Rotas, regex e comparações por Util, exigidos pela skill |
+
+## 1. Interfaces com uma única implementação
+
+As 7 interfaces têm uma implementação só: `ProdutorController`, `IntervaloPremioService`, `LeituraArquivoFilmeService`, `ImportacaoFilmeFacade`, `FilmeServiceTransactional`, `CalculoIntervaloPremioServiceApplication` e `SeparacaoProdutorServiceApplication`.
+
+- **Tensão real dentro da skill:** o `solid.md` diz que "abstração sem um segundo caso de uso real é custo", enquanto o `SKILL.md` e o `layers-and-naming.md` exigem o par em toda camada.
+- **Como a própria skill resolve:** o `solid.md` fecha com "não invente estrutura nova… as camadas de `layers-and-naming.md` cobrem os casos previstos". O alerta vale para abstrações *além* das camadas, não para o par obrigatório.
+- **No Controller, a interface tem função concreta:** concentra todo o contrato HTTP (rota, verbo, `produces`) e mantém a `Impl` sem anotações de mapeamento.
+- **Decisão:** manter todas. Remover qualquer uma contraria regra explícita.
+- **Impacto nos testes:** nenhum. Os testes falam com a API por HTTP e não referenciam essas interfaces.
+
+## 2. Classes que apenas delegam
+
+| Classe | O que faz | Avaliação |
+|---|---|---|
+| `ProdutorControllerImpl` | log de entrada e chamada ao Service | É exatamente o que a skill exige ("só registra a entrada e delega"). **Manter.** |
+| `ImportacaoFilmeJob` | chama `importar()` na inicialização | Separa *quando* roda de *o que* faz. Se a Facade implementasse `SmartInitializingSingleton`, misturaria gatilho e orquestração. **Manter.** |
+| `ImportacaoFilmeFacadeImpl` | `ler()` e depois `salvar()` | Parece supérflua, mas mantém a leitura do arquivo **fora** da transação. Sem ela: o Job não pode orquestrar (a skill o proíbe de ter regra), o Service não pode injetar o `ServiceTransactional` (só a Facade pode) e o `ServiceTransactional` não pode fazer I/O. **Manter.** |
+| `IntervaloPremioServiceImpl` | busca no Repository e chama o cálculo | É o único caso em que a delegação não é imposta. Ver opção O-A. |
+
+## 3. Utilitários
+
+`LongUtil` (8 membros), `ObjectUtil` (3) e `StringUtil` (2) são triviais, e nenhum membro está sem uso.
+
+- **A skill os exige:** "em `if`, filtro e comparação de negócio, use o Util do tipo" e "cálculo também é pelo Util".
+- **Para projeto sem a biblioteca compartilhada**, ela orienta criar os Utils "com os mesmos nomes e assinaturas".
+- **Ganho concreto:** `LongUtil.menos` e `soma` usam `Math.*Exact`, que detecta estouro.
+- **Decisão:** manter. Trocar pelos operadores diretos contraria regra explícita.
+
+## 4. Camadas que poderiam sair
+
+| Camada | Se eliminada | Avaliação |
+|---|---|---|
+| `FilmeServiceTransactional` | O `saveAll` do Spring Data já abre transação sozinho, mas a conversão VO → entidade iria para a leitura do arquivo (mistura I/O com persistência) ou para a Facade (que não pode injetar Repository). | **Manter.** É também o único lugar autorizado a ter `@Transactional`. |
+| `CalculoIntervaloPremioServiceApplication` | O algoritmo iria para `IntervaloPremioServiceImpl`. | Opcional (O-A). |
+| `SeparacaoProdutorServiceApplication` | A regra de separação viraria método privado da leitura. | Opcional (O-B). |
+
+## 5. Exceções e constantes
+
+| Estrutura | Avaliação |
+|---|---|
+| `ApiExceptionHandler` + `ErroDTO` | Obrigatório pela skill (um `@RestControllerAdvice` com corpo único). Também é o que faz 404 e 405 saírem no mesmo formato. **Manter.** |
+| `BusinessServiceException` + `ErroEnum` + `messages.properties` | É o padrão da skill para projeto sem a biblioteca compartilhada. Com 7 erros, é proporcional. Detalhe cosmético: o `httpStatus` dos 3 erros de importação e o de `REQUISICAO_INVALIDA` não são lidos, porque o enum exige o campo em toda constante. **Manter.** |
+| `RotaConstants` | Obrigatório ("rota sempre de constante"); também é usado pelos testes. **Manter.** |
+| `RegexConstants` | Usado por uma classe só, mas a skill manda expressão regular em `RegexConstants`. **Manter.** |
+| **`FilmeConstants`** | Usado **só** por `LeituraArquivoFilmeServiceImpl`. A skill diz: "Constante usada por uma classe só fica como `private static final` no topo dela". **É um desvio atual** → R-1. |
+
+## 6. KISS e YAGNI
+
+- **Desvio real:** só o `FilmeConstants`, uma classe separada para constantes de um único consumidor.
+- **`FilmeVO`:** não é excesso. Ele é a chave de detecção de duplicatas (a igualdade do `record` compara todos os campos), o que a entidade não faz, porque compara só pelo id.
+- **`Filme` + `ProdutorFilme`:** não é excesso. Permitem a consulta única com `JOIN` e ordenação; guardar só o texto obrigaria a separar os nomes a cada requisição.
+
+## 7. Simplificações que contrariariam regra obrigatória (não fazer)
+
+| Proposta | Regra violada |
+|---|---|
+| Remover as interfaces | "Toda camada é par interface + `Impl`" |
+| Controller sem interface | contrato na interface, `Impl` só delega |
+| Remover a Facade e orquestrar no Job | o Job não tem regra; o Service não injeta o `ServiceTransactional`; sem I/O na transação |
+| Remover o `ServiceTransactional` | único lugar com `@Transactional` |
+| Remover os Utils | comparação e cálculo pelo Util |
+| Rotas como texto | rota sempre de constante |
+| Trocar `BusinessServiceException` por `IllegalStateException` | erro pelo `ErroEnum` |
+| Remover o handler global | formato único de erro |
+
+## Proposta conservadora
+
+**Recomendada**
+
+| ID | Mudança | Benefício | Impacto nos testes |
+|---|---|---|---|
+| **R-1** | Mover as constantes de `FilmeConstants` para `private static final` no topo de `LeituraArquivoFilmeServiceImpl` e apagar `FilmeConstants`. | Corrige um desvio da skill e deixa as constantes junto do único código que as usa. São 33 → 32 arquivos, sem nenhuma mudança de comportamento. | Nenhum: nenhum teste referencia `FilmeConstants`. Validar com `mvnw.cmd clean verify` (27 testes). |
+
+**Opcionais (trade-off neutro, eu não faria)**
+
+| ID | Mudança | A favor | Contra |
+|---|---|---|---|
+| O-A | Juntar o cálculo dos intervalos em `IntervaloPremioServiceImpl` (sai o par `CalculoIntervaloPremioServiceApplication`) | Elimina o único Service que só delega; o motivo de a skill separar o cálculo era facilitar teste unitário, e o PDF proíbe teste unitário | O algoritmo, a peça mais crítica, deixa de estar isolado do acesso a dados, com seu contrato documentado na interface |
+| O-B | Juntar a separação de produtores em `LeituraArquivoFilmeServiceImpl` | 2 arquivos a menos | A classe, já com ~240 linhas (acima das ~150 sugeridas), cresce; e a skill pede classe própria quando a regra tem nome e responsabilidade |
+
+O impacto nos testes de O-A e O-B seria nenhum, porque os testes passam só pelo HTTP e pela inicialização.
+
+**Puramente estéticas (não recomendo)**
+- Tirar o `httpStatus` não lido de 4 constantes do `ErroEnum` quebraria a uniformidade que o enum da skill pede.
+- Trocar `LongUtil.soma` por `long` primitivo no contador de linhas contraria a regra de usar wrapper e Util.
+
+**Minha recomendação:** aplicar só o R-1. Ele remove complexidade sem custo e aproxima o código da skill. As demais mexem em estrutura correta para reduzir contagem de arquivos, que não é meta de qualidade.
+
+Aguardo sua aprovação: aplico o R-1 (e, se quiser, também O-A e/ou O-B) e rodo o `mvnw.cmd clean verify` em seguida.
+
+## 👤 Usuário
+
+ok aplique somente o r-1
+
+- 🔧 `Read` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\service\impl\LeituraArquivoFilmeServiceImpl.java
+
+- 🔧 `Read` — D:\outsera\src\main\java\br\com\outsera\goldenraspberry\constants\FilmeConstants.java
+
+## 🤖 Claude
+
+Aplico o R-1: as constantes passam a `private static final` no topo da classe que as usa, e o `FilmeConstants` é removido.
+
+- 🔧 `Bash` — Inline FilmeConstants into its only consumer and delete it
+
+## 🤖 Claude
+
+Nenhuma referência restante no código. Rodo o build completo:
+
+- 🔧 `PowerShell` — Run clean verify after R-1
+
+## 🤖 Claude
+
+27/27, `BUILD SUCCESS`. Atualizo as referências na documentação que descreve a estrutura atual:
+
+- 🔧 `Bash` — Find documentation references to FilmeConstants
+
+## 🤖 Claude
+
+As menções em RV-7 e T013 são históricas e ficam como estão. Atualizo o plano (estrutura atual), registro a tarefa e a revisão:
+
+- 🔧 `Bash` — Update docs, regenerate AI export, show status
+
+## 🤖 Claude
+
+Apliquei só o R-1. O `FilmeConstants` foi removido e as constantes dele passaram a ser `private static final` no topo de `LeituraArquivoFilmeServiceImpl`, a única classe que as usava. O comportamento não mudou: `mvnw.cmd clean verify` passou com os 27 testes e `BUILD SUCCESS`.
+
+- **Código:** agora são 32 arquivos de produção, e nenhuma referência ao `FilmeConstants` sobrou.
+- **Documentação:**
+  - a árvore de pacotes do `plan.md` foi atualizada;
+  - a tarefa T047 entrou no `tasks.md`;
+  - `docs/revisao-tecnica.md` ganhou a seção da revisão de complexidade, registrando o que você aprovou e o que ficou de fora;
+  - `docs/ai/README.md` ganhou a etapa 13.
+- **Registros de IA:** a exportação da sessão foi regenerada a partir do log real, sem dados pessoais.
+
+As menções ao `FilmeConstants` que ficaram no RV-7 da revisão e na tarefa T013 descrevem o histórico, por isso não as alterei.
+
+Não executei nenhum comando de git que altere o repositório; as mudanças estão na árvore de trabalho para o seu commit. Esta resposta não está na exportação; se quiser incluí-la, rode `docs/ai/exportar_sessao.py` de novo antes do commit.
+
+## 👤 Usuário
+
+ok, agora reveja os .md, specs, arquivos de ia e os organize no projeto
+
+## 🤖 Claude
+
+Começo pelo inventário de toda a documentação do projeto, excluindo a skill e o Spec Kit instalado, que não devem ser alterados.
+
+- 🔧 `Bash` — Inventory markdown, specs and AI files
+
+## 🤖 Claude
+
+Leio cada documento para encontrar inconsistências, redundâncias e trechos desatualizados. Começo pela spec:
+
+- 🔧 `Read` — D:\outsera\specs\001-intervalo-premios-produtores\spec.md
+
+- 🔧 `Read` — D:\outsera\specs\001-intervalo-premios-produtores\plan.md
+
+- 🔧 `Read` — D:\outsera\specs\001-intervalo-premios-produtores\quickstart.md
+
+- 🔧 `Read` — D:\outsera\specs\001-intervalo-premios-produtores\research.md
+
+- 🔧 `Read` — D:\outsera\specs\001-intervalo-premios-produtores\tasks.md
+
+- 🔧 `Read` — D:\outsera\specs\001-intervalo-premios-produtores\contracts\intervalos-premios.md
+
+- 🔧 `Read` — D:\outsera\specs\001-intervalo-premios-produtores\checklists\requirements.md
+
+- 🔧 `Read` — D:\outsera\docs\ai\README.md
+
+- 🔧 `Read` — D:\outsera\docs\revisao-tecnica.md
+
+- 🔧 `Read` — D:\outsera\specs\001-intervalo-premios-produtores\data-model.md
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\organizar_specs.py
+
+- 🔧 `Bash` — Apply spec artifact organization
+
+- 🔧 `Write` — D:\outsera\docs\revisao-tecnica.md
+
+## 🤖 Claude
+
+Agora o índice de IA: tabela sem duplicidade, nota correta sobre o alcance da exportação, Python entre as ferramentas e links para as novas seções da revisão.
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\organizar_docs_ai.py
+
+- 🔧 `Bash` — Apply AI index organization
+
+## 🤖 Claude
+
+Agora o mapa da documentação no README da raiz, para que o avaliador encontre cada artefato:
+
+- 🔧 `Edit` — D:\outsera\README.md
+
+## 🤖 Claude
+
+Verifico todos os links relativos dos documentos (arquivos e âncoras) com um script, para não deixar referência quebrada:
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\verificar_links.py
+
+- 🔧 `Bash` — Check relative links and anchors in docs
+
+## 🤖 Claude
+
+Nenhum link quebrado. Faço uma varredura final por termos desatualizados fora dos trechos históricos:
+
+- 🔧 `Bash` — Scan docs for stale references
+
+## 🤖 Claude
+
+Todas as ocorrências restantes são históricas e estão identificadas como tal. Regenero a exportação da sessão a partir do log real e confiro o estado da árvore (só leitura):
+
+- 🔧 `Bash` — Regenerate session export and show working tree
+
+## 🤖 Claude
+
+Reorganizei a documentação. Nenhum link relativo ficou quebrado (verifiquei arquivos e âncoras com script), e não mexi em código, na skill nem no git.
+
+**Organização final**
+```text
+README.md                         entrada do projeto + novo "Mapa da documentação"
+challenge/                        enunciado (PDF) e CSV original
+.claude/skills/…                  skill (sem alteração)
+.specify/memory/constitution.md   princípios (Spec Kit)
+specs/001-intervalo-premios-produtores/
+  spec.md · plan.md · research.md · data-model.md · contracts/ · quickstart.md · tasks.md · checklists/
+docs/
+  revisao-tecnica.md              estado atual + histórico das 5 passadas
+  ai/                             README (índice) · prompt-inicial · sessão · exportador
+```
+Mantive `specs/` e `.specify/memory/` onde estão porque é a convenção do Spec Kit, que os próprios comandos leem.
+
+**O que mudou**
+
+| Arquivo | Ajuste |
+|---|---|
+| `README.md` | Nova seção "Mapa da documentação", com uma linha por artefato |
+| `docs/revisao-tecnica.md` | Reescrito com o **estado atual** primeiro (PDF, conformidade com a skill, itens mantidos de propósito) e depois o **histórico** das 5 passadas em ordem. Antes, dizia "três passadas", descrevia cinco e tinha seções fora de ordem. Nada foi perdido |
+| `docs/ai/README.md` | Tabela de arquivos sem a linha duplicada; nota sobre o alcance da exportação corrigida (falava em "commit final", que agora é com você) e com o comando para regenerá-la; `jshell` e Python nas ferramentas; etapa 14 registrada; link para âncora antiga corrigido |
+| `spec.md` | Status de "Draft" para "Implementada"; dois cenários de aceite para aspas malformadas e duplicata; casos de borda novos agrupados no fim; quebras de linha de FR-005/FR-006 consertadas; SC-002 lista todos os datasets |
+| `tasks.md` | Nova Fase 8 (T046–T048) em ordem, seção de dependências cobrindo as fases 7 e 8, e nota explicando que as tarefas antigas descrevem o que foi feito na época (Actuator, `STRING_VAZIA` e `FilmeConstants` foram removidos depois) |
+| `research.md` | Frase da CI que estava grudada no item de propriedades virou item próprio; linha longa quebrada |
+| `plan.md` | A árvore do projeto passou a incluir `docs/revisao-tecnica.md` e os arquivos de `docs/ai/` |
+| `checklists/requirements.md` | Nota que dizia "serão confirmados no clarify" atualizada para o que de fato aconteceu |
+| `contracts/…` | Linha em branco sobrando no fim |
+
+**Registros de IA:** a exportação foi regenerada a partir do log real (11 blocos do usuário: pedidos colados, respostas do clarify e a mensagem enviada durante a execução), sem dados pessoais. Este relatório não está nela; se quiser incluí-lo, rode `docs/ai/exportar_sessao.py` de novo antes do commit.
+
+As menções restantes a `FilmeConstants`, Actuator e `STRING_VAZIA` estão em trechos históricos e vêm acompanhadas de nota sobre a remoção.
+
+## 👤 Usuário
+
+entao, temos docs, specs, skill-claude, constrasc, checkist, é muita pasta e arquivo, organize melhor isso
+
+## 🤖 Claude
+
+O que você vê na raiz é uma mistura de coisas com papéis diferentes, então começo separando o que é entregável do que é cópia local. Primeiro olho a pasta `skill-claude-backend-spring/` da raiz, só com leitura:
+
+- 🔧 `Bash` — Inspect root folders and the root skill copy
+
+- 🔧 `AskUserQuestion` — A pasta skill-claude-backend-spring/ na raiz é uma cópia local, idêntica à skill entregue em .claude/skills/, ignorada pelo git, num repositório próprio sem commits nem remote. Posso apagá-la?
+
+## 👤 Usuário (resposta ao clarify — pergunta="resposta")
+
+"A pasta skill-claude-backend-spring/ na raiz é uma cópia local, idêntica à skill entregue em .claude/skills/, ignorada pelo git, num repositório próprio sem commits nem remote. Posso apagá-la?"="manter, mas em outro diretorio padronizando".
+
+- 🔧 `Bash` — Move root skill copy into .local/
+
+- 🔧 `Edit` — D:\outsera\.gitignore
+
+- 🔧 `PowerShell` — Move root skill copy into .local with PowerShell
+
+## 🤖 Claude
+
+A movimentação foi negada no `.git` interno. Confiro se ficou algo pela metade antes de seguir:
+
+- 🔧 `Bash` — Check partial move state and .git permissions
+
+- 🔧 `Bash` — Verify moved files and remaining .git content
+
+- 🔧 `PowerShell` — Try removing the leftover empty folder
+
+- 🔧 `Edit` — D:\outsera\README.md
+
+## 🤖 Claude
+
+Agora registro na spec o resultado do checklist (aprovado, 16/16) e removo os três arquivos redundantes:
+
+- 🔧 `Edit` — D:\outsera\specs\001-intervalo-premios-produtores\spec.md
+
+- 🔧 `Bash` — Remove consolidated contract, checklist and quickstart
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Read` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Edit` — D:\outsera\docs\ai\exportar_sessao.py
+
+- 🔧 `Bash` — Regenerate export, drop prompt file, verify integrity and leaks
+
+- 🔧 `Bash` — Inspect CSV match context
+
+## 🤖 Claude
+
+Ali é só o "Leonardo DiCaprio" do próprio dataset. Agora atualizo as referências aos arquivos removidos:
+
+- 🔧 `Bash` — Find references to removed files
+
+- 🔧 `Write` — ~\AppData\Local\Temp\claude\D--outsera\9fa4d13e-f2b9-40a5-95a5-62c2bdefe786\scratchpad\organizar_referencias.py
+
+- 🔧 `Bash` — Fix task order in script and apply reference updates
+
+## 🤖 Claude
+
+Ordem das tarefas corrigida. O `.dockerignore` ainda cita a pasta antiga da raiz; troco pela `.local/` para a cópia local nunca entrar no contexto de build da imagem:
+
+- 🔧 `Bash` — Update dockerignore, check links, rebuild image

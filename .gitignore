@@ -31,6 +31,6 @@ Thumbs.db
 # Configuração local do Claude Code (permissões da máquina)
 .claude/settings.local.json
 
-# Cópia local da skill com o .git do repositório original — a versão entregue
-# fica em .claude/skills/skill-claude-backend-spring/
-/skill-claude-backend-spring/
+# Arquivos só locais, fora da entrega (ex.: cópia de trabalho da skill com o .git do repositório
+# original — a versão entregue fica em .claude/skills/skill-claude-backend-spring/)
+/.local/
