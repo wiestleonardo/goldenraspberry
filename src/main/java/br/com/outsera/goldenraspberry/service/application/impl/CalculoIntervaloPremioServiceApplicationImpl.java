@@ -16,61 +16,55 @@ import br.com.outsera.goldenraspberry.util.ObjectUtil;
 @Service
 public class CalculoIntervaloPremioServiceApplicationImpl implements CalculoIntervaloPremioServiceApplication {
 
-    private static final Comparator<IntervaloPremioDTO> ORDENACAO_INTERVALO_PREMIO = Comparator.comparing(IntervaloPremioDTO::produtor)
-            .thenComparing(IntervaloPremioDTO::anoPremioAnterior)
-            .thenComparing(IntervaloPremioDTO::anoPremioSeguinte);
+    private static final Comparator<Long> CRITERIO_INTERVALO_MINIMO = Comparator.naturalOrder();
+    private static final Comparator<Long> CRITERIO_INTERVALO_MAXIMO = Comparator.reverseOrder();
 
+    // Percurso único: cada intervalo consecutivo é confrontado na hora com os extremos atuais, sem
+    // lista intermediária nem passadas extras para mínimo, máximo, filtro e ordenação. As vitórias
+    // chegam ordenadas por produtor e ano, então os intervalos nascem ordenados por produtor, ano
+    // anterior e ano seguinte e as listas de empates já saem na ordem da resposta.
     @Override
     public RetornoIntervaloPremioDTO calcular(List<VitoriaProdutorProjection> listaVitoriaProdutorProjection) {
 
-        List<IntervaloPremioDTO> listaIntervaloPremioDTO = this.montarIntervalosConsecutivos(listaVitoriaProdutorProjection);
-
-        if (listaIntervaloPremioDTO.isEmpty()) {
-
-            return new RetornoIntervaloPremioDTO(List.of(), List.of());
-        }
-
-        Long intervaloMinimo = listaIntervaloPremioDTO.stream()
-                .map(IntervaloPremioDTO::intervalo)
-                .min(Comparator.naturalOrder())
-                .orElseThrow();
-
-        Long intervaloMaximo = listaIntervaloPremioDTO.stream()
-                .map(IntervaloPremioDTO::intervalo)
-                .max(Comparator.naturalOrder())
-                .orElseThrow();
-
-        return new RetornoIntervaloPremioDTO(this.filtrarPorIntervalo(listaIntervaloPremioDTO, intervaloMinimo),
-                this.filtrarPorIntervalo(listaIntervaloPremioDTO, intervaloMaximo));
-    }
-
-    private List<IntervaloPremioDTO> montarIntervalosConsecutivos(List<VitoriaProdutorProjection> listaVitoriaProdutorProjection) {
-
-        List<IntervaloPremioDTO> listaIntervaloPremioDTO = new ArrayList<>();
+        List<IntervaloPremioDTO> listaIntervaloMinimo = new ArrayList<>();
+        List<IntervaloPremioDTO> listaIntervaloMaximo = new ArrayList<>();
         VitoriaProdutorProjection vitoriaAnterior = null;
 
         for (VitoriaProdutorProjection vitoriaAtual : listaVitoriaProdutorProjection) {
 
             if (ObjectUtil.isNotNull(vitoriaAnterior) && ObjectUtil.isEquals(vitoriaAnterior.produtor(), vitoriaAtual.produtor())) {
 
-                listaIntervaloPremioDTO.add(new IntervaloPremioDTO(vitoriaAtual.produtor(),
+                IntervaloPremioDTO intervaloPremioDTO = new IntervaloPremioDTO(vitoriaAtual.produtor(),
                         LongUtil.menos(vitoriaAtual.ano(), vitoriaAnterior.ano()),
                         vitoriaAnterior.ano(),
-                        vitoriaAtual.ano()));
+                        vitoriaAtual.ano());
+
+                this.registrarExtremo(listaIntervaloMinimo, intervaloPremioDTO, CRITERIO_INTERVALO_MINIMO);
+                this.registrarExtremo(listaIntervaloMaximo, intervaloPremioDTO, CRITERIO_INTERVALO_MAXIMO);
             }
 
             vitoriaAnterior = vitoriaAtual;
         }
 
-        return listaIntervaloPremioDTO;
+        return new RetornoIntervaloPremioDTO(List.copyOf(listaIntervaloMinimo), List.copyOf(listaIntervaloMaximo));
     }
 
-    private List<IntervaloPremioDTO> filtrarPorIntervalo(List<IntervaloPremioDTO> listaIntervaloPremioDTO, Long intervalo) {
+    // Intervalo que supera o extremo atual (segundo o critério) substitui os empates guardados;
+    // intervalo igual entra como mais um empate; pior é ignorado
+    private void registrarExtremo(List<IntervaloPremioDTO> listaExtremo, IntervaloPremioDTO intervaloPremioDTO,
+            Comparator<Long> criterio) {
 
-        return listaIntervaloPremioDTO.stream()
-                .filter(intervaloPremioDTO -> LongUtil.igual(intervaloPremioDTO.intervalo(), intervalo))
-                .sorted(ORDENACAO_INTERVALO_PREMIO)
-                .toList();
+        int comparacao = listaExtremo.isEmpty() ? -1 : criterio.compare(intervaloPremioDTO.intervalo(), listaExtremo.getFirst().intervalo());
+
+        if (comparacao < 0) {
+
+            listaExtremo.clear();
+        }
+
+        if (comparacao <= 0) {
+
+            listaExtremo.add(intervaloPremioDTO);
+        }
     }
 
 }

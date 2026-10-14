@@ -7,6 +7,7 @@ import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
@@ -87,7 +88,7 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
 
             List<String> listaCabecalho = this.lerCabecalho(bufferedReader.readLine());
 
-            return this.converter(bufferedReader, listaCabecalho);
+            return this.converter(bufferedReader, listaCabecalho.size(), this.mapearIndiceColuna(listaCabecalho));
 
         } catch (IOException | UncheckedIOException excecaoLeitura) {
 
@@ -95,22 +96,39 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
         }
     }
 
-    // As colunas são localizadas pelo nome, sem distinção de caixa: a ordem não importa e colunas a
-    // mais são ignoradas. Falta de coluna obrigatória interrompe a importação.
     private List<String> lerCabecalho(String linhaCabecalho) {
 
-        List<String> listaCabecalho = ObjectUtil.isNull(linhaCabecalho) ? List.of()
-                : this.separarColunas(this.removerMarcaOrdemByte(linhaCabecalho)).orElse(List.of()).stream()
-                        .map(coluna -> coluna.toLowerCase(Locale.ROOT))
-                        .toList();
+        if (ObjectUtil.isNull(linhaCabecalho)) {
 
-        if (listaCabecalho.containsAll(LISTA_COLUNA_OBRIGATORIA)) {
-
-            return listaCabecalho;
+            return List.of();
         }
 
-        throw new BusinessServiceException(ErroEnum.CABECALHO_ARQUIVO_FILME_INVALIDO, this.arquivoFilme,
-                LISTA_COLUNA_OBRIGATORIA, listaCabecalho);
+        return this.separarColunas(this.removerMarcaOrdemByte(linhaCabecalho)).orElse(List.of()).stream()
+                .map(coluna -> coluna.toLowerCase(Locale.ROOT))
+                .toList();
+    }
+
+    // As colunas são localizadas pelo nome, sem distinção de caixa: a ordem não importa e colunas a
+    // mais são ignoradas. A posição de cada coluna obrigatória é resolvida uma vez, no cabeçalho, e a
+    // mesma busca já valida a presença: falta de coluna obrigatória interrompe a importação.
+    private Map<String, Integer> mapearIndiceColuna(List<String> listaCabecalho) {
+
+        Map<String, Integer> mapaIndiceColuna = new HashMap<>();
+
+        for (String colunaObrigatoria : LISTA_COLUNA_OBRIGATORIA) {
+
+            int indiceColuna = listaCabecalho.indexOf(colunaObrigatoria);
+
+            if (indiceColuna < 0) {
+
+                throw new BusinessServiceException(ErroEnum.CABECALHO_ARQUIVO_FILME_INVALIDO, this.arquivoFilme,
+                        LISTA_COLUNA_OBRIGATORIA, listaCabecalho);
+            }
+
+            mapaIndiceColuna.put(colunaObrigatoria, indiceColuna);
+        }
+
+        return Map.copyOf(mapaIndiceColuna);
     }
 
     // Arquivo salvo pelo Excel/Windows começa com BOM UTF-8; o Reader do Java não o remove, e o U+FEFF
@@ -125,12 +143,13 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
         return linhaCabecalho;
     }
 
-    private List<FilmeVO> converter(BufferedReader bufferedReader, List<String> listaCabecalho) throws IOException {
+    private List<FilmeVO> converter(BufferedReader bufferedReader, Integer quantidadeColuna, Map<String, Integer> mapaIndiceColuna)
+            throws IOException {
 
         // A chave é o próprio filme já normalizado: uma linha idêntica a outra já lida não vira um
         // segundo prêmio. A ordem de leitura é preservada.
         Map<FilmeVO, Long> mapaLinhaPorFilmeVO = new LinkedHashMap<>();
-        List<Long> listaNumeroLinhaDescartada = new ArrayList<>();
+        Long quantidadeLinhaDescartada = LongUtil.ZERO;
         Long numeroLinha = NUMERO_LINHA_CABECALHO;
 
         for (String linha = bufferedReader.readLine(); ObjectUtil.isNotNull(linha); linha = bufferedReader.readLine()) {
@@ -142,23 +161,24 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
                 continue;
             }
 
-            Optional<String> motivoDescarte = this.registrarLinha(linha, numeroLinha, listaCabecalho, mapaLinhaPorFilmeVO);
+            Optional<String> motivoDescarte = this.registrarLinha(linha, numeroLinha, quantidadeColuna, mapaIndiceColuna,
+                    mapaLinhaPorFilmeVO);
 
             if (motivoDescarte.isPresent()) {
 
                 log.warn("Linha {} do arquivo de filmes descartada: {}", numeroLinha, motivoDescarte.get());
-                listaNumeroLinhaDescartada.add(numeroLinha);
+                quantidadeLinhaDescartada = LongUtil.soma(quantidadeLinhaDescartada, LongUtil.UM);
             }
         }
 
         log.info("Arquivo de filmes {} lido: {} linhas válidas e {} descartadas", this.arquivoFilme, mapaLinhaPorFilmeVO.size(),
-                listaNumeroLinhaDescartada.size());
+                quantidadeLinhaDescartada);
 
         return new ArrayList<>(mapaLinhaPorFilmeVO.keySet());
     }
 
-    private Optional<String> registrarLinha(String linha, Long numeroLinha, List<String> listaCabecalho,
-            Map<FilmeVO, Long> mapaLinhaPorFilmeVO) {
+    private Optional<String> registrarLinha(String linha, Long numeroLinha, Integer quantidadeColuna,
+            Map<String, Integer> mapaIndiceColuna, Map<FilmeVO, Long> mapaLinhaPorFilmeVO) {
 
         Optional<List<String>> listaColuna = this.separarColunas(linha);
 
@@ -167,12 +187,12 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
             return Optional.of("aspas malformadas");
         }
 
-        if (listaColuna.get().size() != listaCabecalho.size()) {
+        if (listaColuna.get().size() != quantidadeColuna) {
 
             return Optional.of("quantidade de colunas diferente do cabeçalho");
         }
 
-        FilmeVO filmeVO = this.montarFilmeVO(listaColuna.get(), listaCabecalho);
+        FilmeVO filmeVO = this.montarFilmeVO(listaColuna.get(), mapaIndiceColuna);
         Optional<String> motivoDescarte = this.identificarMotivoDescarte(filmeVO);
 
         if (motivoDescarte.isPresent()) {
@@ -205,21 +225,21 @@ public class LeituraArquivoFilmeServiceImpl implements LeituraArquivoFilmeServic
 
     // Monta o VO com o que a linha trouxer; campo ausente ou inválido fica nulo (ou lista vazia) e é
     // rejeitado logo em seguida por identificarMotivoDescarte — o VO incompleto nunca sai desta classe
-    private FilmeVO montarFilmeVO(List<String> listaColuna, List<String> listaCabecalho) {
+    private FilmeVO montarFilmeVO(List<String> listaColuna, Map<String, Integer> mapaIndiceColuna) {
 
-        String produtores = this.obterColuna(listaColuna, listaCabecalho, COLUNA_PRODUTORES).strip();
+        String produtores = this.obterColuna(listaColuna, mapaIndiceColuna, COLUNA_PRODUTORES).strip();
 
-        return new FilmeVO(LongUtil.toLong(this.obterColuna(listaColuna, listaCabecalho, COLUNA_ANO)),
-                this.obterColuna(listaColuna, listaCabecalho, COLUNA_TITULO).strip(),
-                this.obterColuna(listaColuna, listaCabecalho, COLUNA_ESTUDIOS).strip(),
+        return new FilmeVO(LongUtil.toLong(this.obterColuna(listaColuna, mapaIndiceColuna, COLUNA_ANO)),
+                this.obterColuna(listaColuna, mapaIndiceColuna, COLUNA_TITULO).strip(),
+                this.obterColuna(listaColuna, mapaIndiceColuna, COLUNA_ESTUDIOS).strip(),
                 produtores,
-                this.identificarVencedor(this.obterColuna(listaColuna, listaCabecalho, COLUNA_VENCEDOR)),
+                this.identificarVencedor(this.obterColuna(listaColuna, mapaIndiceColuna, COLUNA_VENCEDOR)),
                 this.separacaoProdutorServiceApplication.separar(produtores));
     }
 
-    private String obterColuna(List<String> listaColuna, List<String> listaCabecalho, String nomeColuna) {
+    private String obterColuna(List<String> listaColuna, Map<String, Integer> mapaIndiceColuna, String nomeColuna) {
 
-        return listaColuna.get(listaCabecalho.indexOf(nomeColuna));
+        return listaColuna.get(mapaIndiceColuna.get(nomeColuna));
     }
 
     private Optional<String> identificarMotivoDescarte(FilmeVO filmeVO) {

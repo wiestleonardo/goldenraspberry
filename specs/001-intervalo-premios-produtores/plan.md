@@ -49,8 +49,8 @@ semelhante; um endpoint
 |---|---|---|
 | I. PDF é autoridade | CSV no startup, H2 em memória, Richardson nível 2, contrato JSON da pág. 2, só testes de integração, README | OK |
 | II. Skill obrigatória | Pacotes/camadas/nomes da skill; par interface + `Impl`; construtor + `final`; `this.`; SQL caixa alta; `@Transactional` só no `ServiceTransactional`; logger SLF4J; handler global; testes `deve...Quando...` | OK — desvios justificados em research R9 |
-| III. Simplicidade | Um módulo; sem cache, paralelismo, mensageria, springdoc, MapStruct, QueryDSL, Liquibase | OK |
-| IV. Correção/determinismo | Intervalos só consecutivos; empates preservados; ordenação explícita em Java; nada fixo | OK |
+| III. Simplicidade | Um módulo; cache local só do resultado imutável (Caffeine); sem paralelismo, mensageria, springdoc, MapStruct, QueryDSL, Liquibase | OK |
+| IV. Correção/determinismo | Intervalos só consecutivos; empates preservados; ordenação determinística pelo `ORDER BY`; nada fixo | OK |
 | V. Só integração | Nenhum teste unitário; contexto real + HTTP real + H2; expectativas calculadas à mão | OK |
 | VI. Reprodutibilidade | Java 21, Boot 4.1.1, Maven Wrapper, Docker multi-stage não root, CI GitHub Actions | OK |
 | VII. Rastreabilidade IA | `docs/ai/` com prompt real, decisões e exportação de sessão sanitizada | OK |

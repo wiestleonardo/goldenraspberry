@@ -119,22 +119,29 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
 - **Decisão**:
   1. Banco devolve as W vitórias (pares produtor × ano de filme vencedor) ordenadas por
      `tx_produtor, nr_ano` — O(W log W).
-  2. `CalculoIntervaloPremioServiceApplication` percorre a lista uma vez: quando a linha atual é do
-     mesmo produtor da anterior, gera o intervalo `ano - anoAnterior` — O(W). Isso garante que só
-     vitórias consecutivas formam intervalos e que anos repetidos geram intervalo 0.
-  3. Calcula o menor e o maior valor de intervalo e filtra os itens iguais a cada um — O(I),
-     I ≤ W.
-  4. Ordena cada lista de empates por `producer`, `previousWin`, `followingWin` (ordem natural de
-     `String` e de `Long`) — O(E log E), E empates.
-  Total: importação O(N) + consulta O(W log W). Memória O(W).
-- **Razão**: correto por construção (agrupamento contíguo garantido pelo `ORDER BY`), linear após a
-  ordenação, sem consultas em laço. A ordenação final em Java torna a saída determinística
-  independentemente da collation do banco.
+  2. `CalculoIntervaloPremioServiceApplication` percorre a lista uma única vez: quando a linha
+     atual é do mesmo produtor da anterior, gera o intervalo `ano - anoAnterior` e o confronta na
+     hora com o mínimo e o máximo correntes — menor (ou maior) substitui os empates guardados,
+     igual entra como mais um empate — O(W). Só vitórias consecutivas formam intervalos e anos
+     repetidos geram intervalo 0.
+  3. Sem reordenação: como as vitórias chegam ordenadas por produtor e ano, os intervalos nascem
+     na ordem `producer`, `previousWin`, `followingWin` e as listas de empates já saem prontas.
+  Total: importação O(N) + consulta O(W log W) no banco e O(W) em Java. Memória O(E), E empates.
+- **Razão**: correto por construção (agrupamento contíguo garantido pelo `ORDER BY`), um único
+  percurso linear após a ordenação, sem consultas em laço. A ordem da saída é a do `ORDER BY`, a
+  mesma que já garante o agrupamento contíguo por produtor.
 - **Determinismo da agrupação**: o H2 compara `VARCHAR` com diferenciação de caixa (collation
   padrão), portanto nomes que diferem só em caixa não se intercalam. Coberto por teste.
 - **Alternativas**: agrupar em `Map<String, List<Long>>` em Java — mesma complexidade, mais
   código; calcular intervalos com função de janela `LAG` no SQL — mais acoplado ao banco e menos
-  legível; cache do resultado — dados imutáveis após o startup, mas a consulta já é barata (YAGNI).
+  legível.
+- **Cache do resultado (adotado)**: `@Cacheable` com Caffeine (`sync = true`, `maximumSize=1`) em
+  `IntervaloPremioServiceImpl.adquirir()`. Os dados são imutáveis após o startup, então a consulta e
+  o cálculo rodam uma vez. Com um CSV de 20.000 filmes, a latência sequencial caiu de 9,1 ms para
+  2,7 ms (p50) e a vazão de 376 para 1.228 req/s; no CSV original o endpoint já estava no piso de
+  rede e Tomcat. Sem TTL nem invalidação, porque não há escrita depois da importação; cada réplica
+  importa o mesmo arquivo, então os caches não divergem (`cloud-native.md` aceita cache local para
+  dado imutável).
 
 ## R9. Desvios justificados da skill
 
