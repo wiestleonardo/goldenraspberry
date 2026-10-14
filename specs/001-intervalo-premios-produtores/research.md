@@ -134,14 +134,7 @@ Decisões técnicas da fase 0, no formato Decisão / Razão / Alternativas. Font
   padrão), portanto nomes que diferem só em caixa não se intercalam. Coberto por teste.
 - **Alternativas**: agrupar em `Map<String, List<Long>>` em Java — mesma complexidade, mais
   código; calcular intervalos com função de janela `LAG` no SQL — mais acoplado ao banco e menos
-  legível.
-- **Cache do resultado (adotado)**: `@Cacheable` com Caffeine (`sync = true`, `maximumSize=1`) em
-  `IntervaloPremioServiceImpl.adquirir()`. Os dados são imutáveis após o startup, então a consulta e
-  o cálculo rodam uma vez. Com um CSV de 20.000 filmes, a latência sequencial caiu de 9,1 ms para
-  2,7 ms (p50) e a vazão de 376 para 1.228 req/s; no CSV original o endpoint já estava no piso de
-  rede e Tomcat. Sem TTL nem invalidação, porque não há escrita depois da importação; cada réplica
-  importa o mesmo arquivo, então os caches não divergem (`cloud-native.md` aceita cache local para
-  dado imutável).
+  legível; cache do resultado — dados imutáveis após o startup, mas a consulta já é barata (YAGNI).
 
 ## R9. Desvios justificados da skill
 

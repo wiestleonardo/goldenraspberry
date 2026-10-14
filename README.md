@@ -13,7 +13,6 @@ que obteve dois prêmios **mais rápido**, no formato definido no enunciado da O
 | Spring Boot | 4.1.1 (Spring MVC, Spring Data JPA, Hibernate 7.4) |
 | Banco | H2 2.4 embarcado, em memória |
 | CSV | Apache Commons CSV 1.14.1 |
-| Cache | Caffeine 3.2.4 (`@Cacheable`) |
 | Build | Maven 3.9.15 via Maven Wrapper |
 | Testes | JUnit 5 + `@SpringBootTest` + `RestTestClient` (somente integração) |
 | Container | Docker multi-stage (`eclipse-temurin:21.0.12.1_1`, fixada por digest) |
@@ -189,17 +188,13 @@ Modelo de dados (`schema.sql`): `tb_filme` (ano, título, estúdios, texto origi
 
 ## Decisões técnicas e desempenho
 
-- **Uma consulta só, na primeira requisição.** Um `SELECT` nativo com `JOIN` devolve só
-  `(produtor, ano)` dos filmes vencedores, ordenado por produtor e ano, sem N+1. O cálculo percorre a lista **uma única
+- **Uma consulta por requisição.** Um `SELECT` nativo com `JOIN` devolve só `(produtor, ano)` dos
+  filmes vencedores, ordenado por produtor e ano, sem N+1. O cálculo percorre a lista **uma única
   vez**: cada vitória é comparada com a anterior do mesmo produtor e o intervalo resultante já é
   confrontado com o mínimo e o máximo correntes, sem lista intermediária nem passadas extras para
   achar extremos, filtrar empates ou ordenar. Complexidade: importação O(N) e consulta O(W log W),
   dominada pela ordenação no banco, mais O(W) em Java (N = linhas do CSV, W = pares produtor ×
   filme vencedor); memória O(E), E = empates devolvidos.
-- **Resultado em cache (Caffeine, `@Cacheable` com `sync = true`).** Os filmes só são gravados no
-  startup, antes de a porta HTTP abrir, e nunca mudam depois: a primeira requisição calcula e as
-  seguintes não vão ao banco. `sync = true` garante uma única carga mesmo com requisições
-  simultâneas. Com várias réplicas, cada uma importa o mesmo arquivo e chega ao mesmo resultado.
 - **CSV lido linha a linha**, cada linha num parser Commons CSV próprio. Com o arquivo inteiro num
   só parser, uma aspa malformada aborta a importação ou engole as linhas seguintes, e as opções
   tolerantes da biblioteca alteram o dado sem aviso (comportamento verificado e registrado no
@@ -213,7 +208,7 @@ Modelo de dados (`schema.sql`): `tb_filme` (ano, título, estúdios, texto origi
   o banco ainda vazio durante a importação.
 - **Persistência:** Spring Data JPA (`saveAll` em lote) para gravar e `@Query` nativa curta para
   ler. Alternativas avaliadas e descartadas: `JdbcClient` para tudo, QueryDSL, função de janela
-  `LAG` e cálculo sem banco.
+  `LAG`, cálculo sem banco e cache.
 
 ### Desempenho medido
 
@@ -224,12 +219,11 @@ piso é uma rota inexistente (404): o custo de rede, Tomcat e cliente, sem nenhu
 |---|---|---|
 | Piso (rota 404) | 2,3 ms / 4,2 ms | 1.854 req/s |
 | CSV original (206 filmes) | 2,1 ms / 3,8 ms | 1.890 req/s |
-| CSV sintético de 20.000 filmes, **sem cache** | 9,1 ms / 17,9 ms | 376 req/s |
-| CSV sintético de 20.000 filmes, **com cache** | 2,7 ms / 5,4 ms | 1.228 req/s |
+| CSV sintético de 20.000 filmes (~100× o original) | 9,1 ms / 17,9 ms | 376 req/s |
 
-Com cache, o endpoint fica no piso; a diferença que resta no arquivo de 20.000 filmes é a
-serialização de uma resposta maior (muitos empates). O log por requisição não tem impacto
-mensurável. Importação do arquivo de 20.000 filmes: leitura e validação em 0,3–0,5 s; gravação em
+No CSV do desafio o endpoint responde no piso: consulta e cálculo não têm custo mensurável, e o log
+por requisição também não. Por isso não há cache, paralelismo ou camadas extras: os dados não mudam
+depois do startup, mas a consulta já é barata. Importação do arquivo de 20.000 filmes: leitura e validação em 0,3–0,5 s; gravação em
 2,4–3,8 s, uma vez no startup. Pelas métricas do Hibernate, quase todo esse tempo é o flush de
 ~60.000 entidades; a busca de ID na sequence (`allocationSize = 1`) responde por ~0,5 s, e
 `allocationSize = 50` não trouxe ganho mensurável, então a regra da skill foi mantida.
